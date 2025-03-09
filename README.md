@@ -4,18 +4,16 @@ A decentralized application (DApp) that leverages blockchain technology to enhan
 
 ## Table of Contents
 
--   [Overview](#overview)
--   [Features](#features)
--   [Tech Stack](#tech-stack)
--   [Getting Started](#getting-started)
+-   [Overview](#overview-)
+-   [Features](#features-)
+-   [Tech Stack](#tech-stack-)
+-   [Getting Started](#getting-started-)
     -   [Prerequisites](#prerequisites)
     -   [Installation](#installation)
     -   [Running the Application](#running-the-application)
--   [Project Structure](#project-structure)
--   [Future Enhancements](#future-enhancements)
--   [Contributing](#contributing)
--   [License](#license)
--   [Acknowledgements](#acknowledgements)
+-   [Project Structure](#project-structure-)
+-   [Future Enhancements](#future-enhancements-)
+-   [License](#license-)
 
 ## Overview 📖
 
@@ -47,7 +45,7 @@ This project is designed to create a blockchain-based supply chain management sy
 -   **Node.js/Express:** For RESTful API endpoints.
 -   **MongoDB:** Off-chain data storage and analytics.
 
-## Tech Stack 🛠️
+## Tech Stack 🔮
 
 -   **Frontend:** React (Vite), Tailwind CSS, React Router, Web3.js
 -   **Blockchain:** Solidity, Truffle, Ganache, MetaMask
