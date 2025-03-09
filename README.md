@@ -131,7 +131,7 @@ Ensure you have the following installed:
 ### Running the Application
 
 1. **Start Ganache:**  
-   Launch Ganache to run your local blockchain on port `8545`.
+   Launch Ganache to run your local blockchain on port `7545`.
 
 2. **Run the Frontend:**
 
