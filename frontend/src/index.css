@@ -1,1 +1,71 @@
 @import "tailwindcss";
+
+/* Font Definitions */
+@font-face {
+    font-family: 'Exo';
+    src: url('./assets/fonts/Exo-Variable.ttf') format('truetype');
+    font-weight: 100 900; /* Variable font weight range */
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Exo';
+    src: url('./assets/fonts/Exo-Italic.ttf') format('truetype');
+    font-weight: 100 900; /* Variable font weight range */
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Orbitron';
+    src: url('./assets/fonts/Orbitron-Variable.ttf') format('truetype');
+    font-weight: 400 900; /* Variable font weight range */
+    font-style: normal;
+    font-display: swap;
+}
+
+@theme {
+    --color-background: #0d1b2a; /* Deep Midnight Blue */
+    --color-panel: #1b263b; /* Dark Slate Blue */
+    --color-cta: #66fcf1; /* Neon Cyan */
+    --color-interactive: #21c17c; /* Neon Green */
+    --color-text: #e0e0e0; /* Off-White */
+    --font-primary: 'Exo', sans-serif;
+    --font-display: 'Orbitron', sans-serif;
+}
+
+/* Global Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-interactive);
+    font-family: "Exo", sans-serif;
+    line-height: 1.6;
+}
+
+/* Utility Classes */
+.bg-panel {
+    background-color: var(--color-panel);
+}
+
+.text-cta {
+    color: var(--color-cta);
+}
+
+.font-primary {
+    font-family: var(--font-primary);
+}
+
+.font-display {
+    font-family: var(--font-display);
+}
+
+.text-text {
+    color: var(--color-text);
+}
