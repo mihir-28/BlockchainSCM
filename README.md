@@ -1,4 +1,4 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/32781c84-f0e4-4e93-becb-10ead6cf6492/deploy-status)](https://app.netlify.com/sites/nexchain/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/58b0d247-673d-44b2-bcca-56a30ba5720d/deploy-status)](https://app.netlify.com/sites/nexchain/deploys)
 
 # Blockchain-Based Supply Chain Management (SCM) System 🚀
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../ui/Navbar';
 import Footer from '../ui/Footer';
-import CustomHover from '../components/common/CustomHover';
+import CustomHover from '../components/Common/CustomHover';
 
 const MainLayout = () => {
     return (
