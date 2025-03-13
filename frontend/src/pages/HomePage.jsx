@@ -1,9 +1,14 @@
 import React from "react";
+import Hero from "../components/Home/Hero";
+import Features from "../components/Home/Features";
+import Testimonials from "../components/Home/Testimonials";
 
 const HomePage = () => {
   return (
-    <div className="py-96">
-        <h1 className="text-cta">Hello World</h1>
+    <div>
+      <Hero />
+      <Features />
+      <Testimonials />
     </div>
   );
 };
