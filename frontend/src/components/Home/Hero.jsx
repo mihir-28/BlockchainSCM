@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
-import NetworkAnimation from '../common/NetworkAnimation';
+import NetworkAnimation from '../Common/NetworkAnimation';
 
 const Hero = () => {
     const connectWallet = async () => {
