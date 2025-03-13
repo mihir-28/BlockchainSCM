@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
 import NetworkAnimation from '../Common/NetworkAnimation';
 
-const Hero = () => {
+const HomeHero = () => {
     const connectWallet = async () => {
         try {
             const { ethereum } = window;
@@ -79,4 +79,4 @@ const Hero = () => {
     );
 };
 
-export default Hero;
+export default HomeHero;

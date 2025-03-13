@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import NetworkAnimation from '../Common/NetworkAnimation';
 import { motion } from 'framer-motion';
 
-const Hero = () => {
+const AboutHero = () => {
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -118,4 +118,4 @@ const Hero = () => {
     );
 };
 
-export default Hero;
+export default AboutHero;

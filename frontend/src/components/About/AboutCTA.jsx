@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { FaRocket, FaCalendarAlt, FaFileAlt, FaEnvelope, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import NetworkAnimation from '../Common/NetworkAnimation';
 
-const CTA = () => {
+const AboutCTA = () => {
   const [expandedFaq, setExpandedFaq] = useState(null);
 
   const toggleFaq = (index) => {
@@ -264,4 +264,4 @@ const CTA = () => {
   );
 };
 
-export default CTA;
+export default AboutCTA;

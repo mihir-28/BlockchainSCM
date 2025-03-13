@@ -1,12 +1,12 @@
 import React from "react";
-import Hero from "../components/Home/Hero";
+import HomeHero from "../components/Home/HomeHero";
 import Features from "../components/Home/Features";
 import Testimonials from "../components/Home/Testimonials";
 
 const HomePage = () => {
   return (
     <div>
-      <Hero />
+      <HomeHero />
       <Features />
       <Testimonials />
     </div>

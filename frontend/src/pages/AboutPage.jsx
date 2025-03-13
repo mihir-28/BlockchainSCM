@@ -1,20 +1,20 @@
 import React from 'react';
-import Hero from '../components/About/Hero';
+import AboutHero from '../components/About/AboutHero';
 import Overview from '../components/About/Overview';
 import Working from '../components/About/Working';
 import Stack from '../components/About/Stack';
 import Benefits from '../components/About/Benefits';
-import CTA from '../components/About/CTA';
+import AboutCTA from '../components/About/AboutCTA';
 
 const AboutPage = () => {
     return (
         <div className="bg-background min-h-screen">
-            <Hero />
+            <AboutHero />
             <Overview />
             <Working />
             <Stack />
             <Benefits />
-            <CTA />
+            <AboutCTA />
         </div>
     );
 };

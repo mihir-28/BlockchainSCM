@@ -4,6 +4,7 @@ import ScrollToTop from "./components/Common/ScrollToTop";
 import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
+import FeaturesPage from "./pages/FeaturesPage";
 
 import './index.css';
 
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
