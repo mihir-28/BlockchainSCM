@@ -178,10 +178,10 @@ const ProductTracking = () => {
               {/* Timeline bar */}
               <div className="absolute top-1/2 left-0 right-0 h-1 bg-panel/50 transform -translate-y-1/2"></div>
 
-              {/* Active progress indicator */}
+              {/* Active progress indicator - Fixed calculation */}
               <div
                 className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-cta to-cta/50 transform -translate-y-1/2 transition-all duration-500"
-                style={{ width: `${(activeStep / (journeySteps.length - 1)) * 100}%` }}
+                style={{ width: `${((activeStep - 1) / (journeySteps.length - 1)) * 100}%` }}
               ></div>
 
               {/* Step indicators */}

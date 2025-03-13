@@ -426,6 +426,7 @@ const AccessControl = () => {
                 </div>
 
                 {/* Role-based visualization */}
+                {/* Make it better later */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -437,53 +438,223 @@ const AccessControl = () => {
                     <FaUsers className="mr-2" /> Role Access Visualization
                   </h4>
 
-                  <div className="aspect-video bg-panel/20 rounded-lg border border-cta/10 p-4 flex items-center justify-center">
-                    {/* This would be replaced with a real visualization in a production environment */}
-                    <div className="relative w-full max-w-lg">
-                      {/* Central node */}
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-cta/30 border border-cta flex items-center justify-center text-cta">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                  <div className="aspect-video bg-panel/20 rounded-lg border border-cta/10 p-4 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-full max-w-xl h-64">
+                      {/* Central node - Access Control System */}
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cta/40 to-cta/20 border-2 border-cta/70 
+                                      flex items-center justify-center text-cta shadow-lg shadow-cta/10 relative">
+                          <div className="absolute w-full h-full rounded-full animate-ping-slow opacity-60 
+                                       bg-cta/20 border border-cta/40"></div>
+                          <div className="absolute w-32 h-32 rounded-full border border-dashed border-cta/20 
+                                       animate-spin-slow"></div>
+                          <div className="absolute w-40 h-40 rounded-full border border-dashed border-cta/10 
+                                       animate-spin-slow-reverse"></div>
+                          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                        </div>
+                        <div className="text-center mt-2">
+                          <div className="text-cta font-medium">Access Control</div>
+                          <div className="text-text/50 text-xs">Smart Contract</div>
+                        </div>
                       </div>
+
+                      {/* Orbit path */}
+                      <div className="absolute top-1/2 left-1/2 w-[280px] h-[280px] -translate-x-1/2 -translate-y-1/2 
+                                    rounded-full border border-cta/10"></div>
 
                       {/* Connecting nodes */}
                       {roles.map((r, index) => {
                         // Calculate position in a circle
                         const angle = (index * (2 * Math.PI)) / roles.length;
-                        const radius = 120;
+                        const radius = 140;
                         const x = Math.cos(angle) * radius;
                         const y = Math.sin(angle) * radius;
 
                         const isActive = r.id === activeRole;
 
+                        // Calculate data flow particles
+                        const particles = isActive ? 3 : 0;
+
                         return (
                           <div key={r.id}>
                             {/* Connection line */}
                             <div
-                              className={`absolute top-1/2 left-1/2 h-0.5 origin-left 
-                                        ${isActive ? r.textColor : 'bg-text/20'}`}
+                              className={`absolute top-1/2 left-1/2 h-[2px] origin-left ${isActive ? `bg-gradient-to-r from-cta/80 via-${r.textColor.replace('text-', '')}/70 to-${r.textColor.replace('text-', '')}/50`
+                                : 'bg-text/10'
+                                }`}
                               style={{
                                 width: `${radius}px`,
                                 transform: `translate(-50%, -50%) rotate(${angle}rad)`
                               }}
-                            />
+                            >
+                              {/* Animated data flow particles */}
+                              {isActive && Array.from({ length: particles }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={`absolute top-1/2 h-1 w-1 rounded-full ${r.textColor} -translate-y-1/2
+                                            animate-flow-particle shadow-sm shadow-cta/50`}
+                                  style={{
+                                    left: `${15 + i * 30}%`,
+                                    animationDelay: `${i * 0.8}s`,
+                                    animationDuration: '3s'
+                                  }}
+                                ></div>
+                              ))}
+                            </div>
 
-                            {/* Node */}
+                            {/* Role node */}
                             <div
-                              className={`absolute w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
-                                        ${isActive ? `${r.textColor} bg-background/70 border-2 ${r.borderColor}` : 'text-text/50 bg-background/30 border border-text/20'}`}
+                              className={`absolute w-16 h-16 transition-all duration-500
+                                        ${isActive
+                                  ? `${r.textColor} shadow-lg shadow-${r.textColor.replace('text-', '')}/20`
+                                  : 'text-text/50'}`}
                               style={{
                                 top: `calc(50% + ${y}px)`,
                                 left: `calc(50% + ${x}px)`,
                                 transform: 'translate(-50%, -50%)'
                               }}
                             >
-                              {r.icon}
+                              <div className={`w-full h-full rounded-full flex flex-col items-center justify-center
+                                            ${isActive
+                                  ? `bg-gradient-to-br ${r.color} border-2 ${r.borderColor}`
+                                  : 'bg-background/30 border border-text/20'}`}
+                              >
+                                <div className={`text-2xl ${isActive ? '' : 'opacity-60'}`}>{r.icon}</div>
+                              </div>
+
+                              <div className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap
+                                            text-xs font-medium ${isActive ? r.textColor : 'text-text/40'}`}>
+                                {r.title}
+                              </div>
+
+                              {/* Permission halo - only visible for active role */}
+                              {isActive && (
+                                <>
+                                  <div className={`absolute inset-0 rounded-full border ${r.borderColor} 
+                                                animate-ping-slow opacity-60`}></div>
+                                  <div className="absolute -inset-2 rounded-full border border-dashed border-cta/20"></div>
+                                </>
+                              )}
+
+                              {/* Small permission indicators */}
+                              {isActive && (
+                                <div className="absolute -inset-10 pointer-events-none">
+                                  {permissionMatrix[r.id].capabilities
+                                    .filter(cap => cap.access !== 'None')
+                                    .slice(0, 4) // Limit to prevent overcrowding
+                                    .map((cap, i) => {
+                                      // Position in mini-orbit around role node
+                                      const miniAngle = (i * (2 * Math.PI)) / 4;
+                                      const miniRadius = 30;
+                                      const miniX = Math.cos(miniAngle) * miniRadius;
+                                      const miniY = Math.sin(miniAngle) * miniRadius;
+
+                                      let bgColor = 'bg-gray-500/20';
+                                      if (cap.access === 'Full') bgColor = 'bg-green-500/20';
+                                      if (cap.access === 'Partial') bgColor = 'bg-amber-500/20';
+                                      if (cap.access === 'Self Only') bgColor = 'bg-blue-500/20';
+
+                                      return (
+                                        <div
+                                          key={i}
+                                          className={`absolute w-4 h-4 ${bgColor} rounded-full border border-cta/20
+                                                    flex items-center justify-center text-[8px] text-cta/80`}
+                                          style={{
+                                            top: `calc(50% + ${miniY}px)`,
+                                            left: `calc(50% + ${miniX}px)`,
+                                            transform: 'translate(-50%, -50%)'
+                                          }}
+                                        >
+                                          {cap.access[0]}
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                              )}
                             </div>
+
+                            {/* Permission metrics bar - only for active role */}
+                            {isActive && (
+                              <div
+                                className="absolute h-[60px] w-[100px] bg-background/40 backdrop-blur-sm
+                                          rounded border border-cta/10 flex flex-col justify-center px-2"
+                                style={{
+                                  top: `calc(50% + ${y}px)`,
+                                  left: `calc(50% + ${x}px)`,
+                                  transform: `translate(${x > 0 ? '20px' : '-120px'}, ${y > 0 ? '30px' : '-90px'})`,
+                                }}
+                              >
+                                <div className="text-[10px] text-text/60 mb-1">Permission Level</div>
+                                <div className="h-1 bg-background/50 rounded overflow-hidden">
+                                  <div
+                                    className={`h-full ${r.id === 'admin'
+                                      ? 'bg-gradient-to-r from-green-500 to-green-400'
+                                      : r.id === 'consumer'
+                                        ? 'bg-gradient-to-r from-red-500 to-red-400 w-[25%]'
+                                        : 'bg-gradient-to-r from-amber-500 to-amber-400 w-[60%]'
+                                      }`}
+                                  ></div>
+                                </div>
+                                <div className="flex justify-between text-[9px] mt-1">
+                                  <span>None</span>
+                                  <span>Partial</span>
+                                  <span>Full</span>
+                                </div>
+
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className="text-[10px] text-text/60">Security</div>
+                                  <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                      <div
+                                        key={i}
+                                        className={`w-1.5 h-1.5 rounded-full mx-0.5 ${i < (r.id === 'admin' ? 5 : r.id === 'consumer' ? 2 : 3)
+                                          ? 'bg-cta'
+                                          : 'bg-background/30'
+                                          }`}
+                                      ></div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
+
+                      {/* Access controller indicators */}
+                      <div className="absolute top-0 left-0 w-full flex justify-center">
+                        <div className="bg-background/30 backdrop-blur-sm border border-cta/20 rounded px-3 py-1
+                                      flex items-center text-xs text-text/70">
+                          <svg className="w-3 h-3 text-cta mr-1" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z"></path>
+                          </svg>
+                          <span>Blockchain-secured role verification</span>
+                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full ml-2 
+                                         animate-pulse"></span>
+                        </div>
+                      </div>
+
+                      {/* Legend */}
+                      <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                        <div className="grid grid-cols-3 gap-3 bg-background/30 backdrop-blur-sm
+                                      border border-cta/10 rounded px-3 py-1 text-[10px] text-text/70">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 rounded-full bg-green-400 mr-1"></div>
+                            <span>Full Access</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 rounded-full bg-amber-400 mr-1"></div>
+                            <span>Partial Access</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
+                            <span>No Access</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -557,6 +728,69 @@ const AccessControl = () => {
           </motion.div>
         </div>
       </div>
+      {/* Add these animations to your CSS or tailwind config */}
+      <style jsx>
+        {`
+          @keyframes ping-slow {
+            0% {
+              transform: scale(1);
+              opacity: 0.8;
+            }
+            70% {
+              transform: scale(1.1);
+              opacity: 0.2;
+            }
+            100% {
+              transform: scale(1);
+              opacity: 0.8;
+            }
+          }
+          @keyframes spin-slow {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+          @keyframes spin-slow-reverse {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(-360deg);
+            }
+          }
+          @keyframes flow-particle {
+            0% {
+              left: 0%;
+              opacity: 0;
+            }
+            10% {
+              opacity: 1;
+            }
+            90% {
+              opacity: 1;
+            }
+            100% {
+              left: 100%;
+              opacity: 0;
+            }
+          }
+          .animate-ping-slow {
+            animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+          }
+          .animate-spin-slow {
+            animation: spin-slow 12s linear infinite;
+          }
+          .animate-spin-slow-reverse {
+            animation: spin-slow-reverse 20s linear infinite;
+          }
+          .animate-flow-particle {
+            animation: flow-particle 3s linear infinite;
+          }
+        `}
+      </style>
     </section>
   );
 };
