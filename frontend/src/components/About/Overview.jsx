@@ -59,7 +59,7 @@ const Overview = () => {
                                 {/* Content overlay */}
                                 <div className="absolute inset-0 flex items-center justify-center z-10">
                                     <div className="bg-panel/70 backdrop-blur-sm p-8 rounded-xl border border-cta/20 max-w-xs">
-                                        <h3 className="font-display text-cta text-xl mb-3">BlockchainSCM</h3>
+                                        <h3 className="font-display text-cta text-xl mb-3">NexChain</h3>
                                         <p className="text-text/90 text-sm">
                                             A decentralized application revolutionizing how products move from manufacturers to customers with complete transparency and security.
                                         </p>
@@ -104,7 +104,7 @@ const Overview = () => {
                                 <div>
                                     <h3 className="text-xl font-display font-bold text-cta mb-3">Our Solution</h3>
                                     <p className="text-text">
-                                        BlockchainSCM creates an immutable, shared record of every transaction and transfer, 
+                                        NexChain creates an immutable, shared record of every transaction and transfer, 
                                         enabling all participants to access a single source of truth that cannot be altered.
                                     </p>
                                 </div>

@@ -107,7 +107,7 @@ const Navbar = () => {
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center">
-          <div className="font-display text-cta text-xl md:text-2xl">BlockchainSCM</div>
+          <div className="font-display text-cta text-xl md:text-2xl">NexChain</div>
         </Link>
 
         {/* Desktop Navigation */}

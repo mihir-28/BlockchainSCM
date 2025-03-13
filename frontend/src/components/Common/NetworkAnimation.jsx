@@ -112,7 +112,8 @@ const NetworkAnimation = ({ opacity = 0.2, color = '20, 184, 166', zIndex = 0 })
                 age: 0,
                 wanderPhase: Math.random() * Math.PI * 2,
                 wanderSpeed: 0.02 + Math.random() * 0.01,
-                wanderMagnitude: 0.1 + Math.random() * 0.2
+                wanderMagnitude: 0.1 + Math.random() * 0.2,
+                id: Math.random().toString(36).substr(2, 9) // Add unique ID for nodes
             };
 
             nodes.push(node);
@@ -163,6 +164,9 @@ const NetworkAnimation = ({ opacity = 0.2, color = '20, 184, 166', zIndex = 0 })
             }
 
             ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+            // Track active connections for drawing packets along them later
+            const activeConnections = [];
 
             // Update and draw nodes
             for (let i = nodes.length - 1; i >= 0; i--) {
@@ -275,6 +279,7 @@ const NetworkAnimation = ({ opacity = 0.2, color = '20, 184, 166', zIndex = 0 })
                             (1.2 - (distance / connectionDistance)) * combinedOpacity :
                             (1.0 - (distance / connectionDistance)) * combinedOpacity;
 
+                        // Draw connection line
                         ctx.beginPath();
                         ctx.moveTo(node.x, node.y);
                         ctx.lineTo(otherNode.x, otherNode.y);
@@ -284,10 +289,25 @@ const NetworkAnimation = ({ opacity = 0.2, color = '20, 184, 166', zIndex = 0 })
                             Math.max(0.5, 1.5 * sizeFactor);
                         ctx.stroke();
 
+                        // Store active connection for data packets
+                        activeConnections.push({
+                            fromNode: node,
+                            toNode: otherNode,
+                            distance: distance,
+                            opacity: opacity,
+                            combinedOpacity: combinedOpacity,
+                            connectionKey: `${node.id}-${otherNode.id}`
+                        });
+
                         // Create data packets with optimized probability
+                        // Note: We only create packets, their rendering is based on active connections
                         const packetProbability = mobile ? 0.0008 : 0.001;
                         if (Math.random() < packetProbability && distance > 50) {
+                            const connectionKey = `${node.id}-${otherNode.id}`;
                             dataPackets.push({
+                                connectionKey: connectionKey, // Track which connection this packet belongs to
+                                fromNodeId: node.id,
+                                toNodeId: otherNode.id,
                                 startX: node.x,
                                 startY: node.y,
                                 endX: otherNode.x,
@@ -304,6 +324,19 @@ const NetworkAnimation = ({ opacity = 0.2, color = '20, 184, 166', zIndex = 0 })
                 }
             }
 
+            // Create lookup map of active connections for quick reference
+            const activeConnectionMap = {};
+            activeConnections.forEach(conn => {
+                activeConnectionMap[conn.connectionKey] = conn;
+                // Also add the reverse direction as connections are bidirectional
+                activeConnectionMap[`${conn.toNode.id}-${conn.fromNode.id}`] = {
+                    ...conn,
+                    fromNode: conn.toNode,
+                    toNode: conn.fromNode,
+                    connectionKey: `${conn.toNode.id}-${conn.fromNode.id}`
+                };
+            });
+
             // Update and draw data packets
             for (let i = dataPackets.length - 1; i >= 0; i--) {
                 const packet = dataPackets[i];
@@ -314,9 +347,24 @@ const NetworkAnimation = ({ opacity = 0.2, color = '20, 184, 166', zIndex = 0 })
                     continue;
                 }
 
-                const currentX = packet.startX + (packet.endX - packet.startX) * packet.progress;
-                const currentY = packet.startY + (packet.endY - packet.startY) * packet.progress;
+                // Check if this connection is still active
+                const activeConn = activeConnectionMap[packet.connectionKey];
+                if (!activeConn) {
+                    // Connection no longer exists, remove the packet
+                    dataPackets.splice(i, 1);
+                    continue;
+                }
 
+                // Update packet position based on current node positions
+                // This ensures packets always follow the current line path
+                const fromNode = activeConn.fromNode;
+                const toNode = activeConn.toNode;
+
+                // Calculate current position along the line between current node positions
+                const currentX = fromNode.x + (toNode.x - fromNode.x) * packet.progress;
+                const currentY = fromNode.y + (toNode.y - fromNode.y) * packet.progress;
+
+                // Draw packet glow
                 const packetGlow = ctx.createRadialGradient(
                     currentX, currentY, 0,
                     currentX, currentY, packet.size * (mobile ? 4 : 3)
