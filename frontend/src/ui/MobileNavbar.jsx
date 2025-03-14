@@ -2,20 +2,42 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { FaWallet } from 'react-icons/fa'
 
-const MobileNavbar = ({ isConnected, walletAddress, connectWallet, formatAddress }) => {
+const MobileNavbar = ({ isConnected, walletAddress, connectWallet, formatAddress, onClose }) => {
+    // Add click handler for navigation links
+    const handleNavigation = () => {
+        // Call the onClose function passed from parent
+        if (onClose) onClose();
+    };
+    
     return (
         <div className="md:hidden bg-panel/95 px-6 py-4 absolute top-full left-0 right-0 border-t border-cta/20">
             <div className="flex flex-col space-y-4">
-                <Link to="/" className="font-primary text-text hover:text-cta transition-colors py-2">
+                <Link 
+                    to="/" 
+                    className="font-primary text-text hover:text-cta transition-colors py-2"
+                    onClick={handleNavigation}
+                >
                     Home
                 </Link>
-                <Link to="/about" className="font-primary text-text hover:text-cta transition-colors py-2">
+                <Link 
+                    to="/about" 
+                    className="font-primary text-text hover:text-cta transition-colors py-2"
+                    onClick={handleNavigation}
+                >
                     About
                 </Link>
-                <Link to="/features" className="font-primary text-text hover:text-cta transition-colors py-2">
+                <Link 
+                    to="/features" 
+                    className="font-primary text-text hover:text-cta transition-colors py-2"
+                    onClick={handleNavigation}
+                >
                     Features
                 </Link>
-                <Link to="/contact" className="font-primary text-text hover:text-cta transition-colors py-2">
+                <Link 
+                    to="/contact" 
+                    className="font-primary text-text hover:text-cta transition-colors py-2"
+                    onClick={handleNavigation}
+                >
                     Contact
                 </Link>
 

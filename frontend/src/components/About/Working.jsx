@@ -1,9 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaBox, FaExchangeAlt, FaQrcode, FaUsers, FaFileContract } from 'react-icons/fa';
+import QRCode from 'react-qr-code';
+import { getRandomEasterEgg } from '../../data/qrEasterEggs';
 
 const Working = () => {
   const [activeStep, setActiveStep] = useState(1);
+  const [qrContent, setQrContent] = useState('');
+
+  // Generate a new easter egg when the component mounts or when viewing the QR step
+  useEffect(() => {
+    if (activeStep === 3) {
+      generateNewQrContent();
+    }
+  }, [activeStep]);
+
+  // Function to generate new QR content with easter egg
+  const generateNewQrContent = () => {
+    // Get a random easter egg
+    const easterEgg = getRandomEasterEgg();
+
+    // Generate a random product ID
+    const productId = '0x' + Math.random().toString(16).substring(2, 8);
+
+    // Create a JSON-like string that includes the easter egg
+    setQrContent(JSON.stringify({
+      product: productId,
+      timestamp: Date.now(),
+      verified: true,
+      message: easterEgg
+    }, null, 2));
+  };
 
   const steps = [
     {
@@ -174,7 +201,7 @@ const Working = () => {
                                 <div className="absolute top-0 -mt-2 left-0 right-0">
                                   <div className="animate-ping absolute h-4 w-4 rounded-full bg-cta/30"></div>
                                   <div className="absolute h-4 w-4 rounded-full bg-cta/60 flex items-center justify-center">
-                                    <FaBox className="text-[11px] text-background" />
+                                    <FaBox className="text-[10px] text-background" />
                                   </div>
                                 </div>
                               </div>
@@ -202,28 +229,48 @@ const Working = () => {
                         {step.id === 3 && (
                           <div className="p-4 h-full flex flex-col items-center justify-center">
                             <div className="relative">
-                              <div className="w-40 h-40 bg-white p-2 rounded-lg">
-                                <div className="w-full h-full grid grid-cols-6 grid-rows-6 gap-0.5">
-                                  {[...Array(36)].map((_, i) => (
-                                    <div
-                                      key={i}
-                                      className={`${Math.random() > 0.5 ? 'bg-black' : 'bg-transparent'}`}
-                                    ></div>
-                                  ))}
-                                </div>
+                              <div className="w-52 h-52 bg-white p-4 rounded-lg shadow-md flex items-center justify-center">
+                                <QRCode
+                                  value={qrContent || "https://nexchain.netlify.app/"}
+                                  size={180}
+                                  bgColor="#FFFFFF"
+                                  fgColor="#000000"
+                                  level="M"
+                                  includeMargin={false}
+                                />
                               </div>
 
-                              <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-cta/20 border border-cta flex items-center justify-center">
+                              <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-panel border border-cta/30 flex items-center justify-center">
                                 <FaBox className="text-sm text-cta" />
                               </div>
+
+                              <div className="absolute -bottom-2 -left-2 rounded-md bg-panel border border-cta/30 py-1 px-2 text-xs text-cta font-medium shadow-sm">
+                                NexChain
+                              </div>
+
+                              {/* Refresh button to get new easter eggs */}
+                              <button
+                                onClick={generateNewQrContent}
+                                className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-panel border border-cta/30 flex items-center justify-center shadow-sm hover:bg-cta/10 transition-colors"
+                                title="Generate new QR code"
+                              >
+                                <svg className="w-4 h-4 text-cta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                              </button>
                             </div>
 
                             <div className="mt-6 text-center">
                               <div className="text-sm text-text flex items-center justify-center">
                                 <FaQrcode className="text-cta mr-2" /> Scan for full product journey
                               </div>
-                              <div className="mt-4 text-xs text-text/70 max-w-xs">
+                              <div className="mt-2 text-xs text-text/70 max-w-xs">
                                 QR codes provide an interface between physical products and their digital twins on the blockchain
+                              </div>
+
+                              {/* Easter egg hint */}
+                              <div className="mt-3 text-[10px] text-cta/60 italic flex items-center justify-center">
+                                <span className="mr-1">✨</span> Try scanning to discover hidden messages <span className="ml-1">✨</span>
                               </div>
                             </div>
                           </div>

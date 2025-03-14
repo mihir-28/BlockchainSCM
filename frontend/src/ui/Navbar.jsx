@@ -99,6 +99,11 @@ const Navbar = () => {
     }
   }
 
+  // Function to close the mobile menu
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
+
   return (
     <nav
       className={`bg-panel sticky top-0 z-50 py-8 px-6 md:px-12 transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'
@@ -166,6 +171,7 @@ const Navbar = () => {
           walletAddress={walletAddress}
           connectWallet={connectWallet}
           formatAddress={formatAddress}
+          onClose={closeMobileMenu}
         />
       )}
     </nav>
