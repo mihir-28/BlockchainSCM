@@ -1,9 +1,0 @@
-[build]
-  command = "cd frontend && npm install && npm run build"
-  publish = "frontend/dist"
-
-# Handle client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
