@@ -206,76 +206,84 @@ const ProductTracking = () => {
             </div>
 
             {/* Active step details */}
-            {journeySteps.map((step) => (
-              <motion.div
-                key={step.id}
-                initial={false}
-                animate={{
-                  opacity: activeStep === step.id ? 1 : 0,
-                  height: activeStep === step.id ? 'auto' : 0,
-                  display: activeStep === step.id ? 'block' : 'none'
-                }}
-                transition={{ duration: 0.5 }}
-                className="bg-panel/30 rounded-lg border border-cta/10 p-6 mb-4"
-              >
-                <div className="flex flex-col md:flex-row md:items-center mb-6">
-                  <div className="flex-shrink-0 mb-4 md:mb-0">
-                    <div className="bg-cta/10 w-16 h-16 rounded-full flex items-center justify-center text-cta text-2xl">
-                      {step.icon}
-                    </div>
-                  </div>
-
-                  <div className="md:ml-6">
-                    <h4 className="text-xl font-display font-bold text-cta">{step.title}</h4>
-
-                    <div className="flex flex-col md:flex-row md:items-center mt-2">
-                      <div className="flex items-center text-text/70 text-sm mb-2 md:mb-0">
-                        <FaMapMarkedAlt className="mr-1" />
-                        <span>{step.location}</span>
-                      </div>
-
-                      <div className="md:ml-6 flex items-center text-text/70 text-sm">
-                        <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>{step.date}</span>
+            <div className="relative">
+              {journeySteps.map((step) => (
+                <motion.div
+                  key={step.id}
+                  initial={false}
+                  animate={{
+                    opacity: activeStep === step.id ? 1 : 0,
+                    position: activeStep === step.id ? 'relative' : 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    zIndex: activeStep === step.id ? 1 : 0,
+                  }}
+                  transition={{ duration: 0.5 }}
+                  className={`bg-panel/30 rounded-lg border border-cta/10 p-6 mb-4 ${
+                    activeStep === step.id ? 'block' : 'hidden'
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center mb-6">
+                    <div className="flex-shrink-0 mb-4 md:mb-0">
+                      <div className="bg-cta/10 w-16 h-16 rounded-full flex items-center justify-center text-cta text-2xl">
+                        {step.icon}
                       </div>
                     </div>
 
-                    <p className="mt-3 text-text">{step.description}</p>
+                    <div className="md:ml-6">
+                      <h4 className="text-xl font-display font-bold text-cta">{step.title}</h4>
+
+                      <div className="flex flex-col md:flex-row md:items-center mt-2">
+                        <div className="flex items-center text-text/70 text-sm mb-2 md:mb-0">
+                          <FaMapMarkedAlt className="mr-1" />
+                          <span>{step.location}</span>
+                        </div>
+
+                        <div className="md:ml-6 flex items-center text-text/70 text-sm">
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span>{step.date}</span>
+                        </div>
+                      </div>
+
+                      <p className="mt-3 text-text">{step.description}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="bg-background/30 rounded-lg p-4">
-                  <h5 className="text-sm font-medium text-cta mb-3">Blockchain Verification Details</h5>
+                  <div className="bg-background/30 rounded-lg p-4">
+                    <h5 className="text-sm font-medium text-cta mb-3">Blockchain Verification Details</h5>
 
-                  <ul className="space-y-2">
-                    {step.details.map((detail, index) => (
-                      <li key={index} className="text-sm text-text/80 flex items-start">
-                        <svg className="w-4 h-4 text-cta mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        {detail}
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-2">
+                      {step.details.map((detail, index) => (
+                        <li key={index} className="text-sm text-text/80 flex items-start">
+                          <svg className="w-4 h-4 text-cta mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
 
-                  <div className="mt-4 pt-4 border-t border-text/10">
-                    <div className="flex justify-between items-center">
-                      <div className="text-xs text-text/60">Validated by 12 network nodes</div>
+                    <div className="mt-4 pt-4 border-t border-text/10">
+                      <div className="flex justify-between items-center">
+                        <div className="text-xs text-text/60">Validated by 12 network nodes</div>
 
-                      <div className="text-xs text-cta">
-                        <span className="flex items-center">
-                          <span className="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
-                          Verified on Blockchain
-                        </span>
+                        <div className="text-xs text-cta">
+                          <span className="flex items-center">
+                            <span className="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+                            Verified on Blockchain
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
 
+            {/* Navigation buttons - Now outside the animated content */}
             <div className="mt-6 flex justify-center">
               <div className="flex space-x-4">
                 <button

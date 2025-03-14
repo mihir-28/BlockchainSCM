@@ -125,6 +125,7 @@ const AboutCTA = () => {
                       delay: 0.4
                     }
                   ].map((card, index) => (
+                    // Updated card component with enhanced hover effects
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 20 }}
@@ -132,11 +133,14 @@ const AboutCTA = () => {
                       viewport={{ once: true }}
                       transition={{ duration: 0.5, delay: card.delay + 0.3 }}
                       className={`bg-gradient-to-br ${card.color} backdrop-blur rounded-lg p-6 border border-cta/10
-                                  hover:border-cta/30 hover:shadow-lg transition-all duration-300 group`}
+                                  hover:bg-cta/10 hover:border-cta/30 hover:shadow-lg transition-all duration-300 group`}
                     >
                       <div className="flex flex-col h-full">
-                        <div className="bg-background/30 w-12 h-12 rounded-full flex items-center justify-center text-cta mb-4
-                                       group-hover:bg-cta group-hover:text-background transition-all duration-300">
+                        {/* Updated icon container with more reliable hover effect */}
+                        <div 
+                          className="bg-background/30 w-12 h-12 rounded-full flex items-center justify-center text-cta mb-4
+                                     border border-transparent transition-all duration-300
+                                     group-hover:bg-background/50 group-hover:text-background group-hover:border-background/20">
                           {card.icon}
                         </div>
 
