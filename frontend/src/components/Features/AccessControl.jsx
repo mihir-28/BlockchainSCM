@@ -438,222 +438,207 @@ const AccessControl = () => {
                     <FaUsers className="mr-2" /> Role Access Visualization
                   </h4>
 
-                  <div className="aspect-video bg-panel/20 rounded-lg border border-cta/10 p-4 flex items-center justify-center overflow-hidden">
-                    <div className="relative w-full max-w-xl h-64">
-                      {/* Central node - Access Control System */}
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cta/40 to-cta/20 border-2 border-cta/70 
-                                      flex items-center justify-center text-cta shadow-lg shadow-cta/10 relative">
-                          <div className="absolute w-full h-full rounded-full animate-ping-slow opacity-60 
+                  {/* Role Access Visualization - MOBILE RESPONSIVE */}
+                  <div className="aspect-video bg-panel/20 rounded-lg border border-cta/10 p-2 md:p-4 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-full max-w-xl h-64 sm:h-64">
+                      {/* Scaling container for mobile */}
+                      <div className="relative w-full h-full scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 transform-gpu">
+                        {/* Central node - Access Control System */}
+                        <div
+                          className="absolute z-20 w-20 h-20"
+                          style={{
+                            top: "calc(50% - 10px)",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)"
+                          }}
+                        >
+                          {/* Main circle with lock icon */}
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cta/40 to-cta/20 
+                                      border-2 border-cta/70 flex items-center justify-center text-cta 
+                                      shadow-lg shadow-cta/10">
+                            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                          </div>
+
+                          {/* Animation effects - MOVED OUTSIDE MAIN NODE */}
+                          <div className="absolute top-0 left-0 w-full h-full rounded-full animate-ping-slow opacity-60 
                                        bg-cta/20 border border-cta/40"></div>
                           <div className="absolute w-32 h-32 rounded-full border border-dashed border-cta/20 
-                                       animate-spin-slow"></div>
+                                       -top-6 -left-6 animate-spin-slow"></div>
                           <div className="absolute w-40 h-40 rounded-full border border-dashed border-cta/10 
-                                       animate-spin-slow-reverse"></div>
-                          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
+                                       -top-10 -left-10 animate-spin-slow-reverse"></div>
+
+                          {/* Label below */}
+                          <div className="text-center absolute top-full left-1/2 transform -translate-x-1/2 w-full mt-2">
+                            <div className="text-cta font-medium text-xs sm:text-sm">Access Control</div>
+                            <div className="text-text/50 text-[10px] sm:text-xs">Smart Contract</div>
+                          </div>
                         </div>
-                        <div className="text-center mt-2">
-                          <div className="text-cta font-medium">Access Control</div>
-                          <div className="text-text/50 text-xs">Smart Contract</div>
-                        </div>
-                      </div>
 
-                      {/* Orbit path */}
-                      <div className="absolute top-1/2 left-1/2 w-[280px] h-[280px] -translate-x-1/2 -translate-y-1/2 
-                                    rounded-full border border-cta/10"></div>
+                        {/* Orbit path */}
+                        <div className="absolute top-1/2 left-1/2 w-[280px] h-[280px] -translate-x-1/2 -translate-y-1/2 
+                                      rounded-full border border-cta/10 z-10"></div>
 
-                      {/* Connecting nodes */}
-                      {roles.map((r, index) => {
-                        // Calculate position in a circle
-                        const angle = (index * (2 * Math.PI)) / roles.length;
-                        const radius = 140;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
+                        {/* Role nodes with connection lines */}
+                        {roles.map((r, index) => {
+                          // Same existing calculation code...
+                          const angle = (index * (2 * Math.PI)) / roles.length;
+                          const radius = 140;
+                          const x = Math.cos(angle) * radius;
+                          const y = Math.sin(angle) * radius;
+                          const isActive = r.id === activeRole;
+                          const particles = isActive ? 3 : 0;
 
-                        const isActive = r.id === activeRole;
-
-                        // Calculate data flow particles
-                        const particles = isActive ? 3 : 0;
-
-                        return (
-                          <div key={r.id}>
-                            {/* Connection line */}
-                            <div
-                              className={`absolute top-1/2 left-1/2 h-[2px] origin-left ${isActive ? `bg-gradient-to-r from-cta/80 via-${r.textColor.replace('text-', '')}/70 to-${r.textColor.replace('text-', '')}/50`
-                                : 'bg-text/10'
-                                }`}
-                              style={{
-                                width: `${radius}px`,
-                                transform: `translate(-50%, -50%) rotate(${angle}rad)`
-                              }}
-                            >
-                              {/* Animated data flow particles */}
-                              {isActive && Array.from({ length: particles }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  className={`absolute top-1/2 h-1 w-1 rounded-full ${r.textColor} -translate-y-1/2
-                                            animate-flow-particle shadow-sm shadow-cta/50`}
-                                  style={{
-                                    left: `${15 + i * 30}%`,
-                                    animationDelay: `${i * 0.8}s`,
-                                    animationDuration: '3s'
-                                  }}
-                                ></div>
-                              ))}
-                            </div>
-
-                            {/* Role node */}
-                            <div
-                              className={`absolute w-16 h-16 transition-all duration-500
-                                        ${isActive
-                                  ? `${r.textColor} shadow-lg shadow-${r.textColor.replace('text-', '')}/20`
-                                  : 'text-text/50'}`}
-                              style={{
-                                top: `calc(50% + ${y}px)`,
-                                left: `calc(50% + ${x}px)`,
-                                transform: 'translate(-50%, -50%)'
-                              }}
-                            >
-                              <div className={`w-full h-full rounded-full flex flex-col items-center justify-center
-                                            ${isActive
-                                  ? `bg-gradient-to-br ${r.color} border-2 ${r.borderColor}`
-                                  : 'bg-background/30 border border-text/20'}`}
-                              >
-                                <div className={`text-2xl ${isActive ? '' : 'opacity-60'}`}>{r.icon}</div>
-                              </div>
-
-                              <div className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap
-                                            text-xs font-medium ${isActive ? r.textColor : 'text-text/40'}`}>
-                                {r.title}
-                              </div>
-
-                              {/* Permission halo - only visible for active role */}
-                              {isActive && (
-                                <>
-                                  <div className={`absolute inset-0 rounded-full border ${r.borderColor} 
-                                                animate-ping-slow opacity-60`}></div>
-                                  <div className="absolute -inset-2 rounded-full border border-dashed border-cta/20"></div>
-                                </>
-                              )}
-
-                              {/* Small permission indicators */}
-                              {isActive && (
-                                <div className="absolute -inset-10 pointer-events-none">
-                                  {permissionMatrix[r.id].capabilities
-                                    .filter(cap => cap.access !== 'None')
-                                    .slice(0, 4) // Limit to prevent overcrowding
-                                    .map((cap, i) => {
-                                      // Position in mini-orbit around role node
-                                      const miniAngle = (i * (2 * Math.PI)) / 4;
-                                      const miniRadius = 30;
-                                      const miniX = Math.cos(miniAngle) * miniRadius;
-                                      const miniY = Math.sin(miniAngle) * miniRadius;
-
-                                      let bgColor = 'bg-gray-500/20';
-                                      if (cap.access === 'Full') bgColor = 'bg-green-500/20';
-                                      if (cap.access === 'Partial') bgColor = 'bg-amber-500/20';
-                                      if (cap.access === 'Self Only') bgColor = 'bg-blue-500/20';
-
-                                      return (
-                                        <div
-                                          key={i}
-                                          className={`absolute w-4 h-4 ${bgColor} rounded-full border border-cta/20
-                                                    flex items-center justify-center text-[8px] text-cta/80`}
-                                          style={{
-                                            top: `calc(50% + ${miniY}px)`,
-                                            left: `calc(50% + ${miniX}px)`,
-                                            transform: 'translate(-50%, -50%)'
-                                          }}
-                                        >
-                                          {cap.access[0]}
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Permission metrics bar - only for active role */}
-                            {isActive && (
+                          return (
+                            <div key={r.id}>
+                              {/* Connection line */}
                               <div
-                                className="absolute h-[60px] w-[100px] bg-background/40 backdrop-blur-sm
-                                          rounded border border-cta/10 flex flex-col justify-center px-2"
+                                className={`absolute top-1/2 left-1/2 h-[2px] origin-left ${isActive
+                                  ? `bg-gradient-to-r from-cta/80 via-${r.textColor.replace('text-', '')}/70 to-${r.textColor.replace('text-', '')}/50`
+                                  : 'bg-text/10'
+                                  }`}
+                                style={{
+                                  width: `${radius}px`,
+                                  transform: `translate(0px, 0px) rotate(${angle}rad)`,
+                                  transformOrigin: 'left center'
+                                }}
+                              >
+                                {isActive && Array.from({ length: particles }).map((_, i) => (
+                                  <div
+                                    key={i}
+                                    className={`absolute top-1/2 h-1 w-1 rounded-full ${r.textColor} -translate-y-1/2
+                                              animate-flow-particle shadow-sm shadow-cta/50`}
+                                    style={{
+                                      left: `${15 + i * 30}%`,
+                                      animationDelay: `${i * 0.8}s`,
+                                      animationDuration: '3s'
+                                    }}
+                                  ></div>
+                                ))}
+                              </div>
+
+                              {/* Role node */}
+                              <div
+                                className={`absolute w-16 h-16 transition-all duration-500
+                                          ${isActive
+                                    ? `${r.textColor} shadow-lg shadow-${r.textColor.replace('text-', '')}/20`
+                                    : 'text-text/50'}`}
                                 style={{
                                   top: `calc(50% + ${y}px)`,
                                   left: `calc(50% + ${x}px)`,
-                                  transform: `translate(${x > 0 ? '20px' : '-120px'}, ${y > 0 ? '30px' : '-90px'})`,
+                                  transform: 'translate(-50%, -50%)'
                                 }}
                               >
-                                <div className="text-[10px] text-text/60 mb-1">Permission Level</div>
-                                <div className="h-1 bg-background/50 rounded overflow-hidden">
-                                  <div
-                                    className={`h-full ${r.id === 'admin'
-                                      ? 'bg-gradient-to-r from-green-500 to-green-400'
-                                      : r.id === 'consumer'
-                                        ? 'bg-gradient-to-r from-red-500 to-red-400 w-[25%]'
-                                        : 'bg-gradient-to-r from-amber-500 to-amber-400 w-[60%]'
-                                      }`}
-                                  ></div>
-                                </div>
-                                <div className="flex justify-between text-[9px] mt-1">
-                                  <span>None</span>
-                                  <span>Partial</span>
-                                  <span>Full</span>
+                                <div className={`w-full h-full rounded-full flex flex-col items-center justify-center
+                                              ${isActive
+                                    ? `bg-gradient-to-br ${r.color} border-2 ${r.borderColor}`
+                                    : 'bg-background/30 border border-text/20'}`}
+                                >
+                                  <div className={`text-2xl ${isActive ? '' : 'opacity-60'}`}>{r.icon}</div>
                                 </div>
 
-                                <div className="flex items-center justify-between mt-2">
-                                  <div className="text-[10px] text-text/60">Security</div>
-                                  <div className="flex">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-1.5 h-1.5 rounded-full mx-0.5 ${i < (r.id === 'admin' ? 5 : r.id === 'consumer' ? 2 : 3)
-                                          ? 'bg-cta'
-                                          : 'bg-background/30'
-                                          }`}
-                                      ></div>
-                                    ))}
+                                <div className={`absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap
+                                              text-xs font-medium ${isActive ? r.textColor : 'text-text/40'}`}>
+                                  {r.title}
+                                </div>
+
+                                {/* Permission halo - only visible for active role */}
+                                {isActive && (
+                                  <>
+                                    <div className={`absolute inset-0 rounded-full border ${r.borderColor} 
+                                                  animate-ping-slow opacity-60`}></div>
+                                    <div className="absolute -inset-2 rounded-full border border-dashed border-cta/20"></div>
+                                  </>
+                                )}
+
+                                {/* Small permission indicators - HIDE ON SMALLEST SCREENS */}
+                                {isActive && (
+                                  <div className="absolute -inset-10 pointer-events-none hidden sm:block">
+                                    {permissionMatrix[r.id].capabilities
+                                      .filter(cap => cap.access !== 'None')
+                                      .slice(0, 4)
+                                      .map((cap, i) => {
+                                        // Position in mini-orbit around role node
+                                        const miniAngle = (i * (2 * Math.PI)) / 4;
+                                        const miniRadius = 30;
+                                        const miniX = Math.cos(miniAngle) * miniRadius;
+                                        const miniY = Math.sin(miniAngle) * miniRadius;
+
+                                        let bgColor = 'bg-gray-500/20';
+                                        if (cap.access === 'Full') bgColor = 'bg-green-500/20';
+                                        if (cap.access === 'Partial') bgColor = 'bg-amber-500/20';
+                                        if (cap.access === 'Self Only') bgColor = 'bg-blue-500/20';
+
+                                        return (
+                                          <div
+                                            key={i}
+                                            className={`absolute w-4 h-4 ${bgColor} rounded-full border border-cta/20
+                                                      flex items-center justify-center text-[8px] text-cta/80`}
+                                            style={{
+                                              top: `calc(50% + ${miniY}px)`,
+                                              left: `calc(50% + ${miniX}px)`,
+                                              transform: 'translate(-50%, -50%)'
+                                            }}
+                                          >
+                                            {cap.access[0]}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Permission metrics bar - HIDE ON MOBILE */}
+                              {isActive && (
+                                <div
+                                  className="absolute h-[60px] w-[100px] bg-background/40 backdrop-blur-sm
+                                            rounded border border-cta/10 flex-col justify-center px-2 
+                                            hidden md:flex"
+                                  style={{
+                                    top: `calc(50% + ${y}px)`,
+                                    left: `calc(50% + ${x}px)`,
+                                    transform: `translate(${x > 0 ? '20px' : '-120px'}, ${y > 0 ? '30px' : '-90px'})`,
+                                  }}
+                                >
+                                  {/* Permission bar contents remain the same */}
+                                  <div className="text-[10px] text-text/60 mb-1">Permission Level</div>
+                                  <div className="h-1 bg-background/50 rounded overflow-hidden">
+                                    <div
+                                      className={`h-full ${r.id === 'admin'
+                                        ? 'bg-gradient-to-r from-green-500 to-green-400'
+                                        : r.id === 'consumer'
+                                          ? 'bg-gradient-to-r from-red-500 to-red-400 w-[25%]'
+                                          : 'bg-gradient-to-r from-amber-500 to-amber-400 w-[60%]'
+                                        }`}
+                                    ></div>
+                                  </div>
+                                  <div className="flex justify-between text-[9px] mt-1">
+                                    <span>None</span>
+                                    <span>Partial</span>
+                                    <span>Full</span>
+                                  </div>
+
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="text-[10px] text-text/60">Security</div>
+                                    <div className="flex">
+                                      {[...Array(5)].map((_, i) => (
+                                        <div
+                                          key={i}
+                                          className={`w-1.5 h-1.5 rounded-full mx-0.5 ${i < (r.id === 'admin' ? 5 : r.id === 'consumer' ? 2 : 3)
+                                            ? 'bg-cta'
+                                            : 'bg-background/30'
+                                            }`}
+                                        ></div>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-
-                      {/* Access controller indicators */}
-                      <div className="absolute top-0 left-0 w-full flex justify-center">
-                        <div className="bg-background/30 backdrop-blur-sm border border-cta/20 rounded px-3 py-1
-                                      flex items-center text-xs text-text/70">
-                          <svg className="w-3 h-3 text-cta mr-1" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z"></path>
-                          </svg>
-                          <span>Blockchain-secured role verification</span>
-                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full ml-2 
-                                         animate-pulse"></span>
-                        </div>
-                      </div>
-
-                      {/* Legend */}
-                      <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-                        <div className="grid grid-cols-3 gap-3 bg-background/30 backdrop-blur-sm
-                                      border border-cta/10 rounded px-3 py-1 text-[10px] text-text/70">
-                          <div className="flex items-center">
-                            <div className="w-2 h-2 rounded-full bg-green-400 mr-1"></div>
-                            <span>Full Access</span>
-                          </div>
-                          <div className="flex items-center">
-                            <div className="w-2 h-2 rounded-full bg-amber-400 mr-1"></div>
-                            <span>Partial Access</span>
-                          </div>
-                          <div className="flex items-center">
-                            <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
-                            <span>No Access</span>
-                          </div>
-                        </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

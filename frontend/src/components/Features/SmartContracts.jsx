@@ -216,9 +216,9 @@ const SmartContracts = () => {
                 {[
                   { step: 1, title: "Contract Creation", icon: <FaFileContract />, description: "Smart contract with terms, conditions, and logic is deployed to the blockchain" },
                   { step: 2, title: "Event Trigger", icon: <FaClock />, description: "Predefined condition is met (e.g., product delivered, deadline reached)" },
-                  { step: 3, title: "Automatic Verification", icon: <FaShieldAlt />, description: "Contract validates the condition using oracle data or blockchain records" },
+                  { step: 3, title: "Verification", icon: <FaShieldAlt />, description: "Contract validates the condition using oracle data or blockchain records" },
                   { step: 4, title: "Execution", icon: <FaCode />, description: "Contract automatically executes according to its programmed instructions" },
-                  { step: 5, title: "Settlement", icon: <FaHandshake />, description: "Funds transfer, ownership update, or relevant actions occur without intermediaries" }
+                  { step: 5, title: "Settlement", icon: <FaHandshake />, description: "Funds transfer, ownership update, or relevant actions occur without any intermediaries" }
                 ].map((item) => (
                   <div key={item.step} className="flex flex-col items-center text-center">
                     <div className="w-12 h-12 rounded-full bg-cta/10 flex items-center justify-center text-cta mb-3">

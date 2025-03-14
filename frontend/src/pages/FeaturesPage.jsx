@@ -3,10 +3,10 @@ import FeaturesHero from '../components/Features/FeaturesHero';
 import ProductTracking from '../components/Features/ProductTracking';
 import SmartContracts from '../components/Features/SmartContracts';
 import AccessControl from '../components/Features/AccessControl';
-// import TransactionLogs from '../components/Features/TransactionLogs';
-// import QrCodeIntegration from '../components/Features/QrCodeIntegration';
-// import AnalyticsDashboard from '../components/Features/AnalyticsDashboard';
-// import FeaturesCTA from '../components/Features/FeaturesCTA';
+import TransactionLogs from '../components/Features/TransactionLogs';
+import QrCodeIntegration from '../components/Features/QrCodeIntegration';
+import AnalyticsDashboard from '../components/Features/AnalyticsDashboard';
+import FeaturesCTA from '../components/Features/FeaturesCTA';
 
 const FeaturesPage = () => {
   return (
@@ -15,10 +15,10 @@ const FeaturesPage = () => {
       <ProductTracking />
       <SmartContracts />
       <AccessControl />
-      {/* <TransactionLogs /> */}
-      {/* <QrCodeIntegration /> */}
-      {/* <AnalyticsDashboard /> */}
-      {/* <FeaturesCTA /> */}
+      <TransactionLogs />
+      <QrCodeIntegration />
+      <AnalyticsDashboard />
+      <FeaturesCTA />
     </div>
   );
 };
