@@ -106,7 +106,7 @@ const ContactPage = () => {
   // Company details
   const companyDetails = {
     name: "Mihir Nagda",
-    address: "Dombivli, Mumbai, Maharashtra, India - 421202",
+    address: "Mumbai, Maharashtra, India - 421202",
     phone: "+91 91374 61112",
     email: "mihirnagda28@gmail.com"
   };
@@ -318,17 +318,21 @@ const ContactPage = () => {
             <div className="bg-panel/20 backdrop-blur-sm rounded-xl border border-cta/20 p-6 md:p-8 shadow-lg">
               <h3 className="text-xl font-display font-bold text-cta mb-4">Our Location</h3>
               <div className="rounded-lg overflow-hidden border border-cta/20 aspect-[16/9]">
-                {/* Replace with actual map when ready */}
-                <div className="w-full h-full bg-gray-800/70 flex items-center justify-center">
-                  {/* Placeholder for the map */}
-                  <div className="text-center">
-                    <div className="flex justify-center text-cta text-4xl mb-2">
-                      <FaMapMarkerAlt />
-                    </div>
-                    <p className="text-text/70 text-sm">Interactive map will be displayed here</p>
-                    <p className="text-text/40 text-xs mt-1">Google Maps integration coming soon</p>
-                  </div>
-                </div>
+                {/* Google Maps Embed */}
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3770.7982976497588!2d72.89521477531603!3d19.072603882131272!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6279e6fa183%3A0x8b414750f755e236!2sSomaiya%20Vidyavihar%20University!5e0!3m2!1sen!2sin!4v1741985294342!5m2!1sen!2sin"
+                  className="w-full h-full"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Office Location Map"
+                  aria-label="Map showing our office location in Mumbai"
+                ></iframe>
+              </div>
+              <div className="flex items-center mt-4 text-sm text-text/70">
+                <FaMapMarkerAlt className="text-cta mr-2" />
+                <span>Mumbai, Maharashtra, India - 421202</span>
               </div>
             </div>
           </motion.div>

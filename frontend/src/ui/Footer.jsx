@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { FaTwitter, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa'
 
@@ -133,13 +133,19 @@ const Footer = () => {
 
         {/* Copyright Row with Dynamic Quote */}
         <div className="flex flex-col justify-center items-center text-center">
-          <p className='text-[12px] sm:text-sm md:mb-2'>
+          <p className='text-[12px] sm:text-sm mb-4 text-text/70'>
             {supplyChainQuotes[quoteIndex]}
           </p>
-          <p className="text-[12px] sm:text-sm md:mb-2">
-            © {currentYear} NexChain. All rights reserved.
-          </p>
-          <p className="text-[12px] sm:text-sm mx-2">Developed By Mihir Nagda.</p>
+
+          <div className="border border-cta/10 rounded-full px-5 py-2 bg-panel/30">
+            <p className="text-[12px] sm:text-sm">
+              © {currentYear} <Link to="/" className="text-cta hover:text-cta/80 transition-colors">NexChain</Link>. All Rights Reserved.
+            </p>
+
+            <p className="text-[11px] sm:text-xs text-text/60 mt-1">
+              Developed By Mihir Nagda
+            </p>
+          </div>
         </div>
       </div>
     </footer>
