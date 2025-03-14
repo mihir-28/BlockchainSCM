@@ -267,11 +267,6 @@ const Working = () => {
                               <div className="mt-2 text-xs text-text/70 max-w-xs">
                                 QR codes provide an interface between physical products and their digital twins on the blockchain
                               </div>
-
-                              {/* Easter egg hint */}
-                              <div className="mt-3 text-[10px] text-cta/60 italic flex items-center justify-center">
-                                <span className="mr-1">✨</span> Try scanning to discover hidden messages <span className="ml-1">✨</span>
-                              </div>
                             </div>
                           </div>
                         )}

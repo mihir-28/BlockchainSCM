@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mui/material": "^6.4.7",
     "@tailwindcss/vite": "^4.0.12",
     "chart.js": "^4.4.8",
+    "firebase": "^11.4.0",
     "framer-motion": "^12.5.0",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
