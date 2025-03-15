@@ -72,3 +72,35 @@ body {
 .grid-rows-25 {
   grid-template-rows: repeat(25, minmax(0, 1fr));
 }
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-panel);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--color-cta) 0%, rgba(102, 252, 241, 0.2) 100%);
+  border-radius: 4px;
+  border: 2px solid var(--color-panel);
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--color-cta) 20%, rgba(102, 252, 241, 0.4) 100%);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--color-panel);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cta) var(--color-panel);
+}
