@@ -15,7 +15,8 @@ import {
   FaArrowUp,
   FaArrowDown,
   FaSignOutAlt,
-  FaUserCircle
+  FaUserCircle,
+  FaWallet
 } from 'react-icons/fa';
 import { Link, Routes, Route, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -40,6 +41,25 @@ const DashboardPage = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // Check for wallet connection on load
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      const { ethereum } = window;
+      if (!ethereum) {
+        navigate('/wallet-connection');
+        return;
+      }
+      
+      const accounts = await ethereum.request({ method: 'eth_accounts' });
+      if (accounts.length === 0) {
+        // Redirect to wallet connection page if no wallet is connected
+        navigate('/wallet-connection');
+      }
+    };
+    
+    checkWalletConnection();
+  }, []);
   
   // Simulate loading data
   useEffect(() => {
@@ -73,6 +93,12 @@ const DashboardPage = () => {
     }
   };
 
+  // Helper function to format wallet address
+  const formatAddress = (address) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   return (
     <div className="min-h-screen bg-background pb-12">
       {/* Dashboard Header */}
@@ -88,6 +114,12 @@ const DashboardPage = () => {
                   className="bg-background/50 border border-cta/10 rounded-lg py-1.5 pl-8 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-cta/30 w-48"
                 />
                 <FaSearch className="absolute left-2.5 top-2.5 text-text/50 text-xs" />
+              </div>
+              <div className="bg-background/50 border border-cta/10 rounded-lg px-3 py-1.5 text-xs text-text/70 flex items-center">
+                <FaWallet className="mr-2 text-cta" />
+                {currentUser?.profile?.walletAddress ? 
+                  formatAddress(currentUser.profile.walletAddress) : 
+                  'Wallet not connected'}
               </div>
               <button className="bg-background/50 border border-cta/10 rounded-lg p-1.5 text-cta/70 hover:text-cta hover:border-cta/20 transition-all">
                 <FaBell />

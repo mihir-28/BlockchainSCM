@@ -9,7 +9,7 @@ import {
   sendPasswordResetEmail
 } from "firebase/auth";
 import { auth, db } from "../services/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 
 const AuthContext = createContext();
 
@@ -93,6 +93,45 @@ export function AuthProvider({ children }) {
     return null;
   }
 
+  // Update user's wallet address in Firestore
+  async function updateUserWallet(walletAddress) {
+    if (!currentUser) return;
+    
+    try {
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        walletAddress: walletAddress,
+        lastUpdated: new Date().toISOString()
+      });
+      
+      // Update local user object
+      setCurrentUser(prevUser => ({
+        ...prevUser,
+        profile: {
+          ...prevUser.profile,
+          walletAddress
+        }
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating wallet address:", error);
+      return false;
+    }
+  }
+
+  // Add this new function to your AuthContext
+  function addAuthNavigation(navigate) {
+    // This function is called when auth state changes and can trigger navigation
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is logged in, you can navigate somewhere
+        // Leave this empty as we'll handle navigation in the login/signup components
+      }
+    });
+    
+    return unsubscribe;
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -113,7 +152,9 @@ export function AuthProvider({ children }) {
     login,
     logout,
     resetPassword,
-    signInWithGoogle
+    signInWithGoogle,
+    updateUserWallet,
+    addAuthNavigation // Add this new function
   };
 
   return (

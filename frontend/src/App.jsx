@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import WalletConnectionPage from "./pages/WalletConnectionPage";
 
 import './index.css';
 
@@ -28,7 +29,15 @@ const App = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route 
-              path="/dashboard" 
+              path="/wallet-connection" 
+              element={
+                <ProtectedRoute>
+                  <WalletConnectionPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/*" 
               element={
                 <ProtectedRoute>
                   <DashboardPage />

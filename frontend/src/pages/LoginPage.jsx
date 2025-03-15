@@ -71,8 +71,34 @@ const LoginPage = () => {
       setIsSubmitting(true);
       
       try {
+        // Login first and wait for it to complete
         await login(formData.email, formData.password);
-        navigate(from, { replace: true });
+        
+        // IMPORTANT: Force a delay to ensure auth state is updated
+        // This is the key to fixing your double login issue
+        setTimeout(() => {
+          // Check if wallet is connected through MetaMask
+          const { ethereum } = window;
+          if (!ethereum) {
+            navigate('/wallet-connection');
+            return;
+          }
+          
+          ethereum.request({ method: 'eth_accounts' })
+            .then(accounts => {
+              if (accounts.length === 0) {
+                // No wallet connected, redirect to wallet connection page
+                navigate('/wallet-connection');
+              } else {
+                // Wallet is connected, proceed to dashboard
+                navigate('/dashboard');
+              }
+            })
+            .catch(error => {
+              console.error("Error checking wallet connection:", error);
+              navigate('/wallet-connection');
+            });
+        }, 500); // Adding a small delay helps ensure Firebase auth state is fully updated
       } catch (error) {
         setLoginError(error.message || "Failed to login. Please check your credentials.");
       } finally {
@@ -87,7 +113,29 @@ const LoginPage = () => {
     
     try {
       await signInWithGoogle();
-      navigate(from, { replace: true });
+      
+      // Add the same delay pattern here
+      setTimeout(() => {
+        // Check if wallet is connected through MetaMask
+        const { ethereum } = window;
+        if (!ethereum) {
+          navigate('/wallet-connection');
+          return;
+        }
+        
+        ethereum.request({ method: 'eth_accounts' })
+          .then(accounts => {
+            if (accounts.length === 0) {
+              navigate('/wallet-connection');
+            } else {
+              navigate('/dashboard');
+            }
+          })
+          .catch(error => {
+            console.error("Error checking wallet connection:", error);
+            navigate('/wallet-connection');
+          });
+      }, 500);
     } catch (error) {
       setLoginError("Google sign-in failed. Please try again.");
     } finally {

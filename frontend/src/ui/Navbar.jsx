@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { FaWallet, FaBars, FaTimes } from 'react-icons/fa'
+import { Link, useNavigate } from 'react-router-dom'
+import { FaBars, FaTimes, FaUserShield, FaSignOutAlt } from 'react-icons/fa'
 import MobileNavbar from './MobileNavbar'
+import { useAuth } from '../contexts/AuthContext'
 
 const Navbar = () => {
-  const [isConnected, setIsConnected] = useState(false)
-  const [walletAddress, setWalletAddress] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [prevScrollPos, setPrevScrollPos] = useState(0)
   const [visible, setVisible] = useState(true)
-
-  // Check if wallet is already connected on component mount
-  useEffect(() => {
-    checkIfWalletIsConnected()
-  }, [])
+  const { currentUser, logout } = useAuth()
+  const navigate = useNavigate()
 
   // Handle scroll behavior for smart navbar
   useEffect(() => {
@@ -40,53 +36,26 @@ const Navbar = () => {
     }
   }, [prevScrollPos, visible])
 
-  // Function to check if wallet is connected
-  const checkIfWalletIsConnected = async () => {
+  // Function to handle login button click
+  const handleLoginClick = () => {
+    navigate('/login')
+    setIsMobileMenuOpen(false); // Close mobile menu when navigating
+  }
+  
+  // Function to handle logout
+  const handleLogout = async () => {
     try {
-      const { ethereum } = window
-      if (!ethereum) {
-        console.log("Make sure you have MetaMask installed!")
-        return
-      }
-
-      // Check if we're authorized to access the user's wallet
-      const accounts = await ethereum.request({ method: 'eth_accounts' })
-
-      if (accounts.length !== 0) {
-        const account = accounts[0]
-        setIsConnected(true)
-        setWalletAddress(account)
-        console.log("Found an authorized account:", account)
-      } else {
-        console.log("No authorized account found")
-      }
+      await logout()
+      navigate('/')
     } catch (error) {
-      console.error(error)
+      console.error("Failed to log out", error)
     }
   }
 
-  // Function to connect wallet
-  const connectWallet = async () => {
-    try {
-      const { ethereum } = window
-      if (!ethereum) {
-        alert("MetaMask is required to connect a wallet")
-        return
-      }
-
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-      setIsConnected(true)
-      setWalletAddress(accounts[0])
-      console.log("Connected:", accounts[0])
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  // Function to format wallet address for display
-  const formatAddress = (address) => {
-    if (!address) return ''
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  // Function to go to dashboard
+  const goToDashboard = () => {
+    navigate('/dashboard')
+    setIsMobileMenuOpen(false); // Close mobile menu when navigating
   }
 
   // Toggle mobile menu
@@ -131,22 +100,31 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Wallet Connection */}
-        <div className="hidden md:flex items-center">
-          {isConnected ? (
-            <div className="flex items-center bg-background/40 rounded-lg px-4 py-2">
-              <FaWallet className="text-cta mr-2" />
-              <span className="text-text text-sm">
-                {formatAddress(walletAddress)}
-              </span>
+        {/* Auth Buttons */}
+        <div className="hidden md:flex items-center space-x-4">
+          {currentUser ? (
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={goToDashboard}
+                className="bg-background/40 text-text hover:bg-background/60 font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
+              >
+                Dashboard
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="bg-red-500/20 text-red-500 hover:bg-red-500/30 font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
+              >
+                <FaSignOutAlt className="mr-2" />
+                Logout
+              </button>
             </div>
           ) : (
             <button
-              onClick={connectWallet}
+              onClick={handleLoginClick}
               className="bg-cta hover:bg-cta/80 text-background font-bold py-2 px-4 rounded-lg flex items-center transition-colors"
             >
-              <FaWallet className="mr-2" />
-              Connect Wallet
+              <FaUserShield className="mr-2" />
+              Log In
             </button>
           )}
         </div>
@@ -167,10 +145,10 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
         <MobileNavbar
-          isConnected={isConnected}
-          walletAddress={walletAddress}
-          connectWallet={connectWallet}
-          formatAddress={formatAddress}
+          currentUser={currentUser}
+          handleLogout={handleLogout}
+          handleLoginClick={handleLoginClick}
+          goToDashboard={goToDashboard}
           onClose={closeMobileMenu}
         />
       )}
