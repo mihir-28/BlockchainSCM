@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useNavigate, Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
 import DashboardNav from '../components/Dashboard/DashboardNav';
-import OverviewPage from '../components/Dashboard/OverviewPage';
-import ProductsPage from './ProductsPage';
-import { kpiData, recentTransactions } from '../data/mockData';
+import { recentTransactions, kpiData } from '../data/mockData'; // Import mock data
 
-const DashboardPage = () => {
+const DashboardLayout = () => {
   // STATE HOOKS
   const [isLoading, setIsLoading] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -24,33 +22,35 @@ const DashboardPage = () => {
   // EFFECT HOOKS
   useEffect(() => {
     const checkWalletConnection = async () => {
-      setIsLoading(true);
+      if (!currentUser) {
+        navigate('/login');
+        return;
+      }
       
-      // Check if MetaMask is available
       const { ethereum } = window;
       if (!ethereum) {
         navigate('/wallet-connection');
         return;
       }
       
-      // Check if a wallet is connected
       try {
         const accounts = await ethereum.request({ method: 'eth_accounts' });
         if (accounts.length === 0) {
           navigate('/wallet-connection');
           return;
         }
+        
+        // All checks passed
+        setIsLoading(false);
       } catch (error) {
         console.error("Error checking wallet connection:", error);
-      } finally {
-        // Successful auth check - show dashboard
-        setIsLoading(false);
+        navigate('/wallet-connection');
       }
     };
     
     checkWalletConnection();
-  }, [navigate]);
-  
+  }, [currentUser, navigate]);
+
   // Handle outside click to close profile menu
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -99,28 +99,15 @@ const DashboardPage = () => {
         {/* Navigation Tabs */}
         <DashboardNav handleLogout={handleLogout} />
         
-        <Routes>
-          {/* Main Dashboard Route */}
-          <Route path="/" element={
-            <OverviewPage 
-              kpiData={kpiData} 
-              recentTransactions={recentTransactions} 
-              currentUser={currentUser} 
-            />
-          } />
-          
-          {/* Products Routes */}
-          <Route path="/products/*" element={<ProductsPage />} />
-          
-          {/* Other Routes */}
-          <Route path="/transactions" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Transactions page coming soon</div>} />
-          <Route path="/analytics" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Analytics page coming soon</div>} />
-          <Route path="/settings" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Settings page coming soon</div>} />
-          <Route path="/profile" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Profile page coming soon</div>} />
-        </Routes>
+        {/* Pass the data to child routes via context */}
+        <Outlet context={{ 
+          currentUser, 
+          kpiData, 
+          recentTransactions
+        }} />
       </div>
     </div>
   );
 };
 
-export default DashboardPage;
+export default DashboardLayout;
