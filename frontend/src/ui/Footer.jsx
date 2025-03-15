@@ -5,8 +5,7 @@ import { FaTwitter, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa'
 const Footer = () => {
   const currentYear = new Date().getFullYear()
   const location = useLocation()
-  const [quoteIndex, setQuoteIndex] = useState(0)
-
+  
   // Collection of supply chain related witty lines
   const supplyChainQuotes = [
     "⚡ Running on blockchain and way too much coffee.",
@@ -22,11 +21,34 @@ const Footer = () => {
     "🌐 Tracking packages with blockchain: because 'lost in transit' is so last century."
   ]
 
-  // Update quote when route changes - sequential pattern
+  // State to keep track of the current quote and available quotes
+  const [currentQuote, setCurrentQuote] = useState("")
+  const [usedQuotes, setUsedQuotes] = useState([])
+
+  // Update quote when route changes or on first load
   useEffect(() => {
-    // Move to next quote, wrap around to beginning if at the end
-    setQuoteIndex((prevIndex) => (prevIndex + 1) % supplyChainQuotes.length)
-  }, [location.pathname])
+    // Filter out quotes that have already been used
+    const availableQuotes = supplyChainQuotes.filter(
+      quote => !usedQuotes.includes(quote)
+    )
+    
+    // If we've used all quotes, reset the used quotes array
+    let quoteToUse
+    
+    if (availableQuotes.length === 0) {
+      // All quotes have been used, reset and pick a random one
+      quoteToUse = supplyChainQuotes[Math.floor(Math.random() * supplyChainQuotes.length)]
+      setUsedQuotes([quoteToUse])
+    } else {
+      // Pick a random quote from available quotes
+      quoteToUse = availableQuotes[Math.floor(Math.random() * availableQuotes.length)]
+      setUsedQuotes(prev => [...prev, quoteToUse])
+    }
+    
+    // Set the current quote
+    setCurrentQuote(quoteToUse)
+    
+  }, [location.pathname]) // Only re-run when the path changes
 
   // Social media links as a constant
   const socialMediaLinks = [
@@ -134,7 +156,7 @@ const Footer = () => {
         {/* Copyright Row with Dynamic Quote */}
         <div className="flex flex-col justify-center items-center text-center">
           <p className='text-[12px] sm:text-sm mb-4 text-text/70'>
-            {supplyChainQuotes[quoteIndex]}
+            {currentQuote}
           </p>
 
           <div className="border border-cta/10 rounded-full px-5 py-2 bg-panel/30">
