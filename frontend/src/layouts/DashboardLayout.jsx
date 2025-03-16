@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
 import DashboardNav from '../components/Dashboard/DashboardNav';
 import { recentTransactions, kpiData } from '../data/mockData'; // Import mock data
+import { isMobileDevice } from '../utils/deviceDetection';
 
 const DashboardLayout = () => {
   // STATE HOOKS
@@ -24,6 +25,13 @@ const DashboardLayout = () => {
     const checkWalletConnection = async () => {
       if (!currentUser) {
         navigate('/login');
+        return;
+      }
+      
+      // Check if on mobile device
+      if (isMobileDevice()) {
+        // Skip wallet connection check for mobile users
+        setIsLoading(false);
         return;
       }
       

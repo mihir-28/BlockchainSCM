@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaUserShield, FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import NetworkAnimation from '../components/Common/NetworkAnimation';
+import { isMobileDevice } from '../utils/deviceDetection';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -75,8 +76,7 @@ const LoginPage = () => {
         await login(formData.email, formData.password);
         
         // IMPORTANT: Force a delay to ensure auth state is updated
-        // This is the key to fixing your double login issue
-        setTimeout(() => {
+        setTimeout(() => {          
           // Check if wallet is connected through MetaMask
           const { ethereum } = window;
           if (!ethereum) {
@@ -115,7 +115,7 @@ const LoginPage = () => {
       await signInWithGoogle();
       
       // Add the same delay pattern here
-      setTimeout(() => {
+      setTimeout(() => {        
         // Check if wallet is connected through MetaMask
         const { ethereum } = window;
         if (!ethereum) {
@@ -137,7 +137,17 @@ const LoginPage = () => {
           });
       }, 500);
     } catch (error) {
-      setLoginError("Google sign-in failed. Please try again.");
+      let errorMessage = "Google sign-in failed. Please try again.";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in popup was closed. Please try again.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Multiple popups detected. Please try again.";
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = "An account with this email already exists using a different sign-in method.";
+      }
+      
+      setLoginError(errorMessage);
     } finally {
       setIsGoogleLoading(false);
     }

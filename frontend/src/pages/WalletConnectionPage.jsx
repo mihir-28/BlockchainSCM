@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { FaWallet, FaExclamationTriangle, FaArrowRight, FaShieldAlt, FaEthereum } from 'react-icons/fa';
+import { FaWallet, FaExclamationTriangle, FaArrowRight, FaShieldAlt, FaEthereum, FaMobileAlt } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import NetworkAnimation from '../components/Common/NetworkAnimation';
+import { isMobileDevice } from '../utils/deviceDetection';
 
 const WalletConnectionPage = () => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -11,6 +12,7 @@ const WalletConnectionPage = () => {
   const [walletAddress, setWalletAddress] = useState('');
   const [error, setError] = useState('');
   const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   
   const navigate = useNavigate();
   const { currentUser, updateUserWallet } = useAuth();
@@ -21,11 +23,16 @@ const WalletConnectionPage = () => {
   }
 
   useEffect(() => {
+    // Check if on mobile device
+    setIsMobile(isMobileDevice());
+    
     // Check if MetaMask is installed
     const { ethereum } = window;
     if (!ethereum) {
       setIsMetaMaskInstalled(false);
-      setError("MetaMask not detected. Please install MetaMask extension to continue.");
+      if (!isMobileDevice()) {
+        setError("MetaMask not detected. Please install MetaMask extension to continue.");
+      }
       return;
     }
 
@@ -112,22 +119,40 @@ const WalletConnectionPage = () => {
           >
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cta/10 mb-4">
-                <FaWallet className="text-cta text-2xl" />
+                {isMobile ? 
+                  <FaMobileAlt className="text-cta text-2xl" /> :
+                  <FaWallet className="text-cta text-2xl" />
+                }
               </div>
-              <h1 className="text-3xl font-display font-bold text-cta mb-2">Connect Your Wallet</h1>
+              <h1 className="text-3xl font-display font-bold text-cta mb-2">
+                {isMobile ? 'Mobile Device Detected' : 'Connect Your Wallet'}
+              </h1>
               <p className="text-text/70 max-w-md mx-auto">
-                Connect your blockchain wallet to access and verify transactions on our supply chain platform
+                {isMobile ? 
+                  'Wallet connection is optional on mobile devices. You can continue to the dashboard without connecting a wallet.' :
+                  'Connect your blockchain wallet to access and verify transactions on our supply chain platform'
+                }
               </p>
             </div>
             
-            {error && (
+            {error && !isMobile && (
               <div className="bg-red-500/20 border border-red-500/30 text-red-500 px-4 py-3 rounded-lg text-sm mb-6 flex items-start">
                 <FaExclamationTriangle className="mt-0.5 mr-2 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            {isConnected ? (
+            {isMobile ? (
+              <div className="bg-blue-500/20 border border-blue-500/30 text-blue-500 px-4 py-4 rounded-lg mb-6">
+                <div className="flex items-center justify-center mb-2">
+                  <FaMobileAlt className="mr-2" />
+                  <span className="font-medium">Mobile Experience</span>
+                </div>
+                <p className="text-sm text-center">
+                  You're using a mobile device. Wallet connection is optional, but you can still access the dashboard.
+                </p>
+              </div>
+            ) : isConnected ? (
               <div className="bg-green-500/20 border border-green-500/30 text-green-500 px-4 py-4 rounded-lg mb-6">
                 <div className="flex items-center justify-center mb-2">
                   <FaShieldAlt className="mr-2" />
@@ -177,7 +202,7 @@ const WalletConnectionPage = () => {
             )}
             
             <div className="flex justify-center">
-              {isConnected ? (
+              {isMobile || isConnected ? (
                 <button
                   onClick={goToDashboard}
                   className="px-6 py-3 bg-cta hover:bg-cta/90 text-background font-medium rounded-lg transition-colors flex items-center"

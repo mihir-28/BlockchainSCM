@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaLock, FaBuilding, FaPhone, FaUserPlus, FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import NetworkAnimation from '../components/Common/NetworkAnimation';
+import { isMobileDevice } from '../utils/deviceDetection';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -123,9 +124,8 @@ const RegisterPage = () => {
         
         // Sign up with email and password
         await signup(formData.email, formData.password, userData);
-        
-        // Redirect to dashboard after successful registration
-        navigate('/dashboard');
+        // Redirect to wallet connection
+        navigate('/wallet-connection');
       } catch (error) {
         let errorMessage = "Registration failed. Please try again.";
         
@@ -150,7 +150,8 @@ const RegisterPage = () => {
     
     try {
       await signInWithGoogle();
-      navigate('/dashboard');
+      // Redirect to wallet connection
+      navigate('/wallet-connection');
     } catch (error) {
       let errorMessage = "Google sign-in failed. Please try again.";
       
