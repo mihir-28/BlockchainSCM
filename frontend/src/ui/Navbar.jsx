@@ -41,7 +41,7 @@ const Navbar = () => {
     navigate('/login')
     setIsMobileMenuOpen(false); // Close mobile menu when navigating
   }
-  
+
   // Function to handle logout
   const handleLogout = async () => {
     try {
@@ -81,7 +81,11 @@ const Navbar = () => {
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center">
-          <div className="font-display text-cta text-xl md:text-2xl">NexChain</div>
+          <img
+            src="/logo.png"
+            alt="NexChain Logo"
+            className="h-10 md:h-12"
+          />
         </Link>
 
         {/* Desktop Navigation */}
@@ -104,13 +108,13 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-4">
           {currentUser ? (
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={goToDashboard}
                 className="bg-background/40 text-text hover:bg-background/60 font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
               >
                 Dashboard
               </button>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="bg-red-500/20 text-red-500 hover:bg-red-500/30 font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
               >

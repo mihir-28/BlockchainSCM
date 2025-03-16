@@ -5,7 +5,7 @@ import { FaTwitter, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa'
 const Footer = () => {
   const currentYear = new Date().getFullYear()
   const location = useLocation()
-  
+
   // Collection of supply chain related witty lines
   const supplyChainQuotes = [
     "⚡ Running on blockchain and way too much coffee.",
@@ -31,10 +31,10 @@ const Footer = () => {
     const availableQuotes = supplyChainQuotes.filter(
       quote => !usedQuotes.includes(quote)
     )
-    
+
     // If we've used all quotes, reset the used quotes array
     let quoteToUse
-    
+
     if (availableQuotes.length === 0) {
       // All quotes have been used, reset and pick a random one
       quoteToUse = supplyChainQuotes[Math.floor(Math.random() * supplyChainQuotes.length)]
@@ -44,10 +44,10 @@ const Footer = () => {
       quoteToUse = availableQuotes[Math.floor(Math.random() * availableQuotes.length)]
       setUsedQuotes(prev => [...prev, quoteToUse])
     }
-    
+
     // Set the current quote
     setCurrentQuote(quoteToUse)
-    
+
   }, [location.pathname]) // Only re-run when the path changes
 
   // Social media links as a constant
@@ -81,8 +81,14 @@ const Footer = () => {
         <div className="grid md:grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
           {/* Company Information */}
           <div className="space-y-4 text-center lg:text-left">
-            <h3 className="font-display text-cta text-xl">NexChain</h3>
-            <p className="text-sm">Revolutionizing Supply Chain with Blockchain</p>
+            <div>
+              <img
+                src="/logo.png"
+                alt="NexChain Logo"
+                className="h-12 mx-auto lg:mx-0"
+              />
+            </div>
+            <p className="text-sm">Redefining Trust, One Block at a Time</p>
             <p className="text-sm mt-4">
               Transparent, secure, and efficient supply chain management powered by blockchain technology.
             </p>
