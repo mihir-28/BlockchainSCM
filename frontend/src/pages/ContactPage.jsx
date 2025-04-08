@@ -358,49 +358,6 @@ const ContactPage = () => {
             </div>
           </motion.div>
         </div>
-
-        {/* FAQ Section - Optional */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-20"
-        >
-          <h2 className="text-2xl md:text-3xl font-display font-bold text-cta mb-8 text-center">
-            Frequently Asked Questions
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              {
-                question: "How quickly do you respond to inquiries?",
-                answer: "We typically respond to all inquiries within 24-48 business hours. For urgent matters, please indicate this in your subject line."
-              },
-              {
-                question: "Do you offer technical support?",
-                answer: "Yes, we provide technical support for all our blockchain solutions. Our support team is available Monday through Friday from 9 AM to 6 PM EST."
-              },
-              {
-                question: "Can I schedule a demo of your platform?",
-                answer: "Absolutely! Use the contact form to request a demo, and our sales team will coordinate a time that works for you."
-              },
-              {
-                question: "Do you offer customized blockchain solutions?",
-                answer: "Yes, we specialize in customized blockchain solutions tailored to your supply chain's specific needs and requirements."
-              }
-            ].map((faq, index) => (
-              <div
-                key={index}
-                className="bg-background/40 backdrop-blur-sm border border-cta/10 rounded-lg p-6 
-                          hover:border-cta/30 hover:shadow-lg hover:shadow-cta/5 transition-all duration-300"
-              >
-                <h3 className="text-lg font-display text-cta mb-3">{faq.question}</h3>
-                <p className="text-text/80 text-sm">{faq.answer}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </div>
   );
