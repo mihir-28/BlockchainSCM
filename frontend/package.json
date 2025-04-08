@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@mui/material": "^6.4.7",
     "@tailwindcss/vite": "^4.0.12",
     "chart.js": "^4.4.8",

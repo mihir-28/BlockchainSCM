@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaGithub, FaLinkedin, FaTwitter, FaInstagram } from 'react-icons/fa';
 import NetworkAnimation from '../components/Common/NetworkAnimation';
+import emailjs from '@emailjs/browser';
 
 const ContactPage = () => {
   // Form state
@@ -17,6 +18,12 @@ const ContactPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+
+  // Initialize EmailJS
+  useEffect(() => {
+    // Initialize with your public key
+    emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
+  }, []);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -75,10 +82,24 @@ const ContactPage = () => {
       setIsSubmitting(true);
 
       try {
-        // Simulate API call - replace with actual API call when ready
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // EmailJS configuration
+        const templateParams = {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message
+        };
 
-        // Success
+        // Send email using environment variables
+        const result = await emailjs.send(
+          import.meta.env.VITE_EMAILJS_SERVICE_ID,
+          import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+          templateParams
+        );
+
+        console.log('Email sent successfully:', result.text);
+        
+        // Success handling
         setSubmitSuccess(true);
         setFormData({
           name: '',
@@ -150,7 +171,7 @@ const ContactPage = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="bg-panel/20 backdrop-blur-sm rounded-xl border border-cta/20 p-6 md:p-8 shadow-lg"
           >
-            <h2 className="text-2xl font-display font-bold text-cta mb-6">Send Us A Message</h2>
+            <h2 className="text-2xl font-display font-bold text-cta mb-6">Send Me A Message</h2>
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-5">
