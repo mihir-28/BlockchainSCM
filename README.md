@@ -1,8 +1,8 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/58b0d247-673d-44b2-bcca-56a30ba5720d/deploy-status)](https://app.netlify.com/sites/nexchain/deploys)
 
-# Blockchain-Based Supply Chain Management (SCM) System 🚀
+# NexChain - A Blockchain-Based Supply Chain Management (SCM) System 🚀
 
-A decentralized application (DApp) that leverages blockchain technology to enhance transparency, traceability, and security in supply chain management. This project uses React (via Vite) and Tailwind CSS for the frontend, with blockchain integration powered by Truffle, Ganache, and MetaMask. A Node.js/Express backend (with MongoDB) will be added later to further extend functionality.
+NexChain is a decentralized application (DApp) that leverages blockchain technology to enhance transparency, traceability, and security in supply chain management. This project uses React (via Vite) and Tailwind CSS for the frontend, with blockchain integration powered by Truffle, Ganache, and MetaMask. A Node.js/Express backend (with MongoDB) will be added later to further extend functionality.
 
 ## Table of Contents
 
