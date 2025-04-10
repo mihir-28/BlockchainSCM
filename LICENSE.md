@@ -1,5 +1,3 @@
-# License
-
 **Copyright © 2025, Mihir Nagda**  
 **All Rights Reserved**
 
