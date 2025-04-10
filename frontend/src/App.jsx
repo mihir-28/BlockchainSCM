@@ -14,6 +14,7 @@ import OverviewPage from "./components/Dashboard/OverviewPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetails from "./components/Products/ProductDetails";
 import TransactionsPage from "./pages/TransactionsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
@@ -73,7 +74,7 @@ const App = () => {
 
             {/* Other dashboard routes */}
             <Route path="transactions" element={<TransactionsPage />} />
-            <Route path="analytics" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Analytics page coming soon</div>} />
+            <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
