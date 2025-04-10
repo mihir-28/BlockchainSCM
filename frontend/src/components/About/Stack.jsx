@@ -9,11 +9,12 @@ import {
   FaCode,
   FaLayerGroup,
   FaShieldAlt,
-  FaNetworkWired, // Added as replacement for SiGanache
+  FaNetworkWired,
   FaTools,
-  FaCubes
 } from 'react-icons/fa';
-import { SiTailwindcss, SiSolidity, SiMongodb, SiExpress } from 'react-icons/si';
+import { SiTailwindcss, SiWeb3Dotjs, SiEthers, SiSolidity, SiFirebase, SiExpress } from 'react-icons/si';
+import { GiFoxHead } from "react-icons/gi";
+
 
 const Stack = () => {
   // Define all the technology stacks
@@ -36,8 +37,13 @@ const Stack = () => {
         },
         {
           name: "Web3.js",
-          icon: <FaEthereum />,
+          icon: <SiWeb3Dotjs />,
           description: "Library for interacting with Ethereum blockchain"
+        },
+        {
+          name: "Ethers.js",
+          icon: <SiEthers />,
+          description: "Complete Ethereum library with wallet implementation"
         }
       ]
     },
@@ -86,9 +92,9 @@ const Stack = () => {
           description: "Fast, unopinionated web framework for Node.js"
         },
         {
-          name: "MongoDB",
-          icon: <SiMongodb />,
-          description: "NoSQL database for modern applications"
+          name: "Firebase",
+          icon: <SiFirebase />,
+          description: "Google's platform for app development with real-time database"
         },
         {
           name: "RESTful API",
@@ -105,7 +111,7 @@ const Stack = () => {
       technologies: [
         {
           name: "MetaMask Integration",
-          icon: <FaEthereum />,
+          icon: <GiFoxHead />,
           description: "Secure wallet connection and transaction signing"
         },
         {
