@@ -74,6 +74,10 @@ body {
 }
 
 /* Custom Scrollbar Styles */
+:root {
+  --scrollbar-color-current: var(--color-cta); /* Default to CTA color */
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -85,14 +89,15 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--color-cta) 0%, rgba(102, 252, 241, 0.2) 100%);
+  background: var(--scrollbar-color-current);
   border-radius: 4px;
   border: 2px solid var(--color-panel);
   transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--color-cta) 20%, rgba(102, 252, 241, 0.4) 100%);
+  background: var(--scrollbar-color-current);
+  opacity: 0.8;
 }
 
 ::-webkit-scrollbar-corner {
@@ -102,5 +107,5 @@ body {
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-cta) var(--color-panel);
+  scrollbar-color: var(--scrollbar-color-current) var(--color-panel);
 }
