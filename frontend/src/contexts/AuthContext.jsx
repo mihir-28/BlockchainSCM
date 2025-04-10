@@ -6,7 +6,11 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  updateProfile,
+  updatePassword as firebaseUpdatePassword, // Renamed to avoid naming conflict
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from "firebase/auth";
 import { auth, db } from "../services/firebase";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
@@ -17,8 +21,12 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// Keep the original Firebase user object and a separate profile state
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
+  // Split these into separate states
+  const [firebaseUser, setFirebaseUser] = useState(null); // Raw Firebase user object
+  const [profile, setProfile] = useState(null); // User profile data
+  const [currentUser, setCurrentUser] = useState(null); // Combined user data
   const [loading, setLoading] = useState(true);
 
   async function signup(email, password, userData) {
@@ -95,27 +103,120 @@ export function AuthProvider({ children }) {
 
   // Update user's wallet address in Firestore
   async function updateUserWallet(walletAddress) {
-    if (!currentUser) return;
+    if (!firebaseUser) return;
     
     try {
-      await updateDoc(doc(db, "users", currentUser.uid), {
+      await updateDoc(doc(db, "users", firebaseUser.uid), {
         walletAddress: walletAddress,
         lastUpdated: new Date().toISOString()
       });
       
-      // Update local user object
-      setCurrentUser(prevUser => ({
-        ...prevUser,
+      // Update local profile state
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        walletAddress
+      }));
+      
+      // Update combined user state
+      setCurrentUser({
+        ...firebaseUser,
         profile: {
-          ...prevUser.profile,
+          ...profile,
           walletAddress
         }
-      }));
+      });
       
       return true;
     } catch (error) {
       console.error("Error updating wallet address:", error);
       return false;
+    }
+  }
+
+  // Update user profile data in Firestore
+  async function updateUserProfile(profileData) {
+    if (!firebaseUser) return;
+    
+    try {
+      // Update display name in Firebase Auth - using the raw firebaseUser
+      if (profileData.displayName) {
+        await updateProfile(firebaseUser, {
+          displayName: profileData.displayName
+        });
+      }
+      
+      // Update profile data in Firestore
+      await updateDoc(doc(db, "users", firebaseUser.uid), {
+        ...profileData,
+        lastUpdated: new Date().toISOString()
+      });
+      
+      // Update local profile state
+      const updatedProfile = profile ? 
+        { ...profile, ...profileData } : 
+        profileData;
+      
+      setProfile(updatedProfile);
+      
+      // Update combined user state
+      setCurrentUser({
+        ...firebaseUser,
+        displayName: profileData.displayName || firebaseUser.displayName,
+        profile: updatedProfile
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  }
+
+  // Update user password in Firebase Auth
+  async function updatePassword(currentPassword, newPassword) {
+    if (!firebaseUser) {
+      throw new Error("No user is logged in");
+    }
+    
+    try {
+      // Create a credential with the user's email and current password
+      const credential = EmailAuthProvider.credential(
+        firebaseUser.email,
+        currentPassword
+      );
+      
+      // Reauthenticate user with the credential
+      await reauthenticateWithCredential(firebaseUser, credential);
+      
+      // Update the password
+      await firebaseUpdatePassword(firebaseUser, newPassword);
+      
+      // Store the password change timestamp in Firestore
+      const passwordLastChanged = new Date().toISOString();
+      await updateDoc(doc(db, "users", firebaseUser.uid), {
+        passwordLastChanged
+      });
+      
+      // If you have separate profile state, update it
+      if (profile) {
+        setProfile({
+          ...profile,
+          passwordLastChanged
+        });
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating password:", error);
+      
+      // Provide more user-friendly error messages
+      if (error.code === 'auth/wrong-password') {
+        throw new Error('Current password is incorrect.');
+      } else if (error.code === 'auth/requires-recent-login') {
+        throw new Error('For security reasons, please log out and log back in before changing your password.');
+      }
+      
+      throw error;
     }
   }
 
@@ -135,9 +236,18 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const profile = await getUserProfile(user.uid);
-        setCurrentUser({ ...user, profile });
+        // Store the raw Firebase user
+        setFirebaseUser(user);
+        
+        // Get the user profile separately
+        const userProfile = await getUserProfile(user.uid);
+        setProfile(userProfile);
+        
+        // Set the combined state for convenience in components
+        setCurrentUser({ ...user, profile: userProfile });
       } else {
+        setFirebaseUser(null);
+        setProfile(null);
         setCurrentUser(null);
       }
       setLoading(false);
@@ -153,8 +263,11 @@ export function AuthProvider({ children }) {
     logout,
     resetPassword,
     signInWithGoogle,
+    getUserProfile,
     updateUserWallet,
-    addAuthNavigation // Add this new function
+    updateUserProfile,
+    updatePassword,
+    addAuthNavigation
   };
 
   return (

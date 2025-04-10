@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
 import DashboardNav from '../components/Dashboard/DashboardNav';
-import OverviewPage from '../components/Dashboard/OverviewPage';
-import ProductsPage from './ProductsPage';
-import { kpiData, recentTransactions } from '../data/mockData';
 
 const DashboardPage = () => {
   // STATE HOOKS
@@ -98,26 +95,6 @@ const DashboardPage = () => {
       <div className="container mx-auto px-4 pt-6">
         {/* Navigation Tabs */}
         <DashboardNav handleLogout={handleLogout} />
-        
-        <Routes>
-          {/* Main Dashboard Route */}
-          <Route path="/" element={
-            <OverviewPage 
-              kpiData={kpiData} 
-              recentTransactions={recentTransactions} 
-              currentUser={currentUser} 
-            />
-          } />
-          
-          {/* Products Routes */}
-          <Route path="/products/*" element={<ProductsPage />} />
-          
-          {/* Other Routes */}
-          <Route path="/transactions" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Transactions page coming soon</div>} />
-          <Route path="/analytics" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Analytics page coming soon</div>} />
-          <Route path="/settings" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Settings page coming soon</div>} />
-          <Route path="/profile" element={<div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Profile page coming soon</div>} />
-        </Routes>
       </div>
     </div>
   );
