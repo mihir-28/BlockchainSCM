@@ -433,7 +433,7 @@ const AnalyticsPage = () => {
       
       {/* Info footer */}
       <div className="text-center text-text/60 text-xs pt-4">
-        <p>All data is verified and secured by blockchain technology. Last updated {new Date().toLocaleTimeString()}</p>
+        <p>All data is verified and secured by blockchain technology.<br/>Last updated {new Date().toLocaleTimeString()}</p>
       </div>
     </div>
   );
