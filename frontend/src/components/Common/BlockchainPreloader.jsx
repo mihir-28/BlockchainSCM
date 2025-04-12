@@ -17,7 +17,7 @@ const BlockchainPreloader = ({ onComplete }) => {
       'Establishing secure connection'
     ];
 
-    // Set total duration (in ms) - 8 seconds
+    // Set total duration (in ms) - 4 seconds
     const totalDuration = 4000;
 
     // Calculate time per step
