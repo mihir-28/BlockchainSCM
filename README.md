@@ -13,6 +13,7 @@ NexChain is a decentralized application (DApp) that leverages blockchain technol
 -   [Overview](#overview-)
 -   [Features](#features-)
 -   [Tech Stack](#tech-stack-)
+-   [Project Timeline](#project-timeline-)
 -   [Getting Started](#getting-started-)
     -   [Prerequisites](#prerequisites)
     -   [Installation](#installation)
@@ -56,6 +57,17 @@ This project is designed to create a blockchain-based supply chain management sy
 -   **Frontend:** React (Vite), Tailwind CSS, React Router, Web3.js
 -   **Blockchain:** Solidity, Truffle, Ganache, MetaMask
 -   **Backend (Future):** Node.js, Express, MongoDB
+
+## Project Timeline 📅
+
+| Phase | Timeframe | Deliverables | Status |
+|-------|-----------|--------------|--------|
+| **Phase 1** | January 2025 | Project Planning, Requirements Gathering | ✅ Completed |
+| **Phase 2** | February 2025 | Architecture design | ✅ Completed |
+| **Phase 3** | March 2025 | Frontend Development, UI/UX Implementation | ✅ Completed |
+| **Phase 4** | April 2025 | Backend and Blockchain integration | 🔄 In Progress |
+| **Phase 5** | April 2025 | Testing, Documentation, Deployment | 🔜 Planned |
+| **Phase 6** | July 2025 | Mobile App Development | 🔜 Planned |
 
 ## Getting Started 🚀
 
@@ -186,8 +198,17 @@ blockchain-scm/
 
 ## License 📄
 
-This project is licensed under the [MIT License](LICENSE.md).
+This project is licensed under a proprietary license. See [LICENSE](LICENSE.md) for details.
 
 ---
+<p align="center">
+  <b>NexChain</b> - Transforming Supply Chains with Blockchain Technology
+</p>
 
-Happy Coding! 😃
+<p align="center">
+  Made With 💪 Dedication, 🧠 Innovation, and Countless ☕ Coffee Sessions
+</p>
+
+<p align="center">
+  Happy Coding! 😃
+</p>
