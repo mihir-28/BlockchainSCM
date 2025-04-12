@@ -203,7 +203,7 @@ const TermsPage = () => {
           className="flex flex-wrap justify-center gap-4"
         >
           <Link
-            to="/policy"
+            to="/privacy-policy"
             className="px-6 py-3 bg-background/40 hover:bg-background/60 text-text/80 rounded-lg border border-cta/10 transition-all duration-300"
           >
             Privacy Policy

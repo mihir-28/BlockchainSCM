@@ -18,7 +18,7 @@ const NotFound = () => {
         <div className="h-96 w-96 rounded-full bg-cta/5 blur-3xl absolute -bottom-48 -right-48"></div>
       </div>
 
-      <div className="container mx-auto px-6 py-24 relative z-10">
+      <div className="container mx-auto px-6 py-12 relative z-10">
         <div className="flex flex-col items-center justify-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}

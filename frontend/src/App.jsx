@@ -39,7 +39,7 @@ const ROUTES_WITHOUT_TRANSITIONS = [
   '/login',
   '/register',
   '/wallet-connection',
-  '/*', // 404 pages
+  '/*',
 ];
 
 // Dashboard route prefix
@@ -86,8 +86,8 @@ const AppContent = () => {
                 <WalletConnectionPage />
               </ProtectedRoute>
             } />
-            <Route path="terms" element={<TermsPage />} />
-            <Route path="policy" element={<PolicyPage />} />
+            <Route path="terms-of-service" element={<TermsPage />} />
+            <Route path="privacy-policy" element={<PolicyPage />} />
             <Route path="support" element={<SupportPage />} />
             <Route path="faq" element={<FAQPage />} />
           </Route>
