@@ -36,6 +36,7 @@ const BlockchainDebugger = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [isCircleMode, setIsCircleMode] = useState(false);
 
   // Helper function to safely handle BigInt values
   const safeStringify = (value) => {
@@ -326,392 +327,418 @@ const BlockchainDebugger = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div
-        className={`bg-gray-800/90 text-white p-3 rounded-lg shadow-lg ${isCollapsed ? 'w-auto' : 'w-[400px]'}`}
-      >
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-medium flex items-center">
-            <span className={`w-2 h-2 rounded-full mr-2 ${debugInfo.web3Connected ? 'bg-green-500' : 'bg-red-500'}`}></span>
-            Blockchain Debugger
-          </h3>
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-xs px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 ml-16"
-          >
-            {isCollapsed ? 'Expand' : 'Collapse'}
-          </button>
+      {isCircleMode ? (
+        // Circle mode - just a dot showing connection status
+        <div 
+          className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer bg-gray-800/90 shadow-lg"
+          onClick={() => setIsCircleMode(false)}
+        >
+          <span className={`w-4 h-4 rounded-full ${debugInfo.web3Connected ? 'bg-green-500' : 'bg-red-500'}`}></span>
         </div>
-
-        {!isCollapsed && (
-          <div className="text-xs space-y-3 overflow-auto max-h-[500px] mt-2">
-            {error && (
-              <div className="p-2 bg-red-900/50 border border-red-700 rounded text-red-300">
-                {error}
-              </div>
-            )}
-
-            {/* Connection details indicator */}
-            <div className="bg-gray-900/50 border border-gray-700 rounded p-2 text-center">
-              <div>
-                <span className={debugInfo.web3Instance ? 'text-green-400' : 'text-red-400'}>
-                  Web3: {debugInfo.web3Instance ? 'Available' : 'Not Available'}
-                </span>
-                {' • '}
-                <span className={debugInfo.currentAccount ? 'text-green-400' : 'text-orange-400'}>
-                  Wallet: {debugInfo.currentAccount ? 'Connected' : 'Not Connected'}
-                </span>
-              </div>
-              <div className="text-gray-400 text-[10px] mt-1">
-                Last refreshed: {lastRefresh.toLocaleTimeString()}
-              </div>
-            </div>
-
-            {/* Connect button for easy wallet connection */}
-            {!debugInfo.currentAccount && (
+      ) : (
+        // Original rectangle mode
+        <div
+          className={`bg-gray-800/90 text-white p-3 rounded-lg shadow-lg ${isCollapsed ? 'w-auto' : 'w-[400px]'}`}
+        >
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-medium flex items-center">
+              <span className={`w-2 h-2 rounded-full mr-2 ${debugInfo.web3Connected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+              Blockchain Debugger
+            </h3>
+            <div className="flex items-center space-x-2 ml-4">
               <button
-                onClick={async () => {
-                  const connected = await requestAccounts();
-                  if (connected) {
-                    loadDebugInfo();
-                  }
-                }}
-                className="w-full py-2 bg-green-700 hover:bg-green-600 rounded text-center"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="text-xs px-3 py-1 bg-gray-700 rounded hover:bg-gray-600"
               >
-                Connect Wallet
+                {isCollapsed ? 'Expand' : 'Collapse'}
               </button>
-            )}
-
-            {/* Tabs */}
-            <div className="flex border-b border-gray-700 mb-3">
-              <button
-                className={`py-1 px-3 -mb-px ${activeTab === 'overview'
-                  ? 'border-b-2 border-cta text-cta'
-                  : 'text-gray-400 hover:text-white'}`}
-                onClick={() => setActiveTab('overview')}
+              <button 
+                onClick={() => setIsCircleMode(true)} 
+                className="text-gray-400 hover:text-white"
+                title="Minimize to dot"
               >
-                Overview
-              </button>
-              <button
-                className={`py-1 px-3 -mb-px ${activeTab === 'contracts'
-                  ? 'border-b-2 border-cta text-cta'
-                  : 'text-gray-400 hover:text-white'}`}
-                onClick={() => setActiveTab('contracts')}
-              >
-                Contracts
-              </button>
-              <button
-                className={`py-1 px-3 -mb-px ${activeTab === 'network'
-                  ? 'border-b-2 border-cta text-cta'
-                  : 'text-gray-400 hover:text-white'}`}
-                onClick={() => setActiveTab('network')}
-              >
-                Network
-              </button>
-            </div>
-
-            {/* Overview Tab */}
-            {activeTab === 'overview' && (
-              <>
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <div className="flex justify-between">
-                    <span>Connected:</span>
-                    <span className={debugInfo.web3Connected ? 'text-green-400' : 'text-red-400'}>
-                      {debugInfo.web3Connected ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>Network:</span>
-                    <span>{debugInfo.networkName}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>Account:</span>
-                    <span className="font-mono">{debugInfo.currentAccount
-                      ? `${debugInfo.currentAccount?.substring(0, 6)}...${debugInfo.currentAccount?.substring(debugInfo.currentAccount.length - 4)}`
-                      : 'Not connected'}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>Balance:</span>
-                    <span>{debugInfo.balance}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>Gas Price:</span>
-                    <span>{debugInfo.gasPrice}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>Product Count:</span>
-                    <span>{debugInfo.productCount}</span>
-                  </div>
-                </div>
-
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <h4 className="font-medium mb-1">Contract Status</h4>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span>ProductTracking:</span>
-                      <span className={debugInfo.contracts.productTracking.initialized ? 'text-green-400' : 'text-red-400'}>
-                        {debugInfo.contracts.productTracking.initialized ? 'Ready' : 'Not Initialized'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>SupplyChain:</span>
-                      <span className={debugInfo.contracts.supplyChainAgreement.initialized ? 'text-green-400' : 'text-red-400'}>
-                        {debugInfo.contracts.supplyChainAgreement.initialized ? 'Ready' : 'Not Initialized'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>AccessControl:</span>
-                      <span className={debugInfo.contracts.accessControl.initialized ? 'text-green-400' : 'text-red-400'}>
-                        {debugInfo.contracts.accessControl.initialized ? 'Ready' : 'Not Initialized'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Contracts Tab */}
-            {activeTab === 'contracts' && (
-              <div className="space-y-3">
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <h4 className="font-medium mb-2">ProductTracking Contract</h4>
-                  <div className="mb-1">
-                    <span className="text-gray-400">Address: </span>
-                    <span className="font-mono text-[10px] break-all">{debugInfo.contracts.productTracking.address}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="text-gray-400">Version: </span>
-                    <span>{debugInfo.contractVersions.productTracking || 'Unknown'}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="text-gray-400">Available Events:</span>
-                    <ul className="ml-4 mt-1 list-disc">
-                      {debugInfo.contracts.productTracking.events.length > 0 ? (
-                        debugInfo.contracts.productTracking.events.map(event => (
-                          <li key={event} className="break-all pr-2 text-[10px] mb-1">
-                            {event}
-                          </li>
-                        ))
-                      ) : (
-                        <li className="text-red-400">No events found</li>
-                      )}
-                    </ul>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Available Methods:</span>
-                    <ul className="ml-4 mt-1 list-disc max-h-20 overflow-y-auto">
-                      {debugInfo.contracts.productTracking.methods.length > 0 ? (
-                        debugInfo.contracts.productTracking.methods.map(method => (
-                          <li key={method}>{method}</li>
-                        ))
-                      ) : (
-                        <li className="text-red-400">No methods found</li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <h4 className="font-medium mb-2">SupplyChain Contract</h4>
-                  <div className="mb-1">
-                    <span className="text-gray-400">Address: </span>
-                    <span className="font-mono text-[10px] break-all">{debugInfo.contracts.supplyChainAgreement.address}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="text-gray-400">Version: </span>
-                    <span>{debugInfo.contractVersions.supplyChain || 'Unknown'}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="text-gray-400">Available Events:</span>
-                    <ul className="ml-4 mt-1 list-disc">
-                      {debugInfo.contracts.supplyChainAgreement.events.length > 0 ? (
-                        debugInfo.contracts.supplyChainAgreement.events.map(event => (
-                          <li key={event} className="break-all pr-2 text-[10px] mb-1">
-                            {event}
-                          </li>
-                        ))
-                      ) : (
-                        <li className="text-red-400">No events found</li>
-                      )}
-                    </ul>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Available Methods:</span>
-                    <ul className="ml-4 mt-1 list-disc max-h-20 overflow-y-auto">
-                      {debugInfo.contracts.supplyChainAgreement.methods.length > 0 ? (
-                        debugInfo.contracts.supplyChainAgreement.methods.map(method => (
-                          <li key={method}>{method}</li>
-                        ))
-                      ) : (
-                        <li className="text-red-400">No methods found</li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <h4 className="font-medium mb-2">AccessControl Contract</h4>
-                  <div className="mb-1">
-                    <span className="text-gray-400">Address: </span>
-                    <span className="font-mono text-[10px] break-all">{debugInfo.contracts.accessControl.address}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="text-gray-400">Version: </span>
-                    <span>{debugInfo.contractVersions.accessControl || 'Unknown'}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="text-gray-400">Available Events:</span>
-                    <ul className="ml-4 mt-1 list-disc">
-                      {debugInfo.contracts.accessControl.events.length > 0 ? (
-                        debugInfo.contracts.accessControl.events.map(event => (
-                          <li key={event} className="break-all pr-2 text-[10px] mb-1">
-                            {event}
-                          </li>
-                        ))
-                      ) : (
-                        <li className="text-red-400">No events found</li>
-                      )}
-                    </ul>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Available Methods:</span>
-                    <ul className="ml-4 mt-1 list-disc max-h-20 overflow-y-auto">
-                      {debugInfo.contracts.accessControl.methods.length > 0 ? (
-                        debugInfo.contracts.accessControl.methods.map(method => (
-                          <li key={method}>{method}</li>
-                        ))
-                      ) : (
-                        <li className="text-red-400">No methods found</li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Network Tab */}
-            {activeTab === 'network' && (
-              <div className="space-y-3">
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <h4 className="font-medium mb-2">Network Information</h4>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Name:</span>
-                    <span>{debugInfo.networkName}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-gray-400">ID:</span>
-                    <span>{debugInfo.networkId}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-gray-400">Gas Price:</span>
-                    <span>{debugInfo.gasPrice}</span>
-                  </div>
-                </div>
-
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <h4 className="font-medium mb-2">Latest Block</h4>
-                  {debugInfo.lastBlock ? (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Number:</span>
-                        <span>{debugInfo.lastBlock.number}</span>
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-gray-400">Time:</span>
-                        <span>{debugInfo.lastBlock.timestamp}</span>
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-gray-400">Gas Used:</span>
-                        <span>{debugInfo.lastBlock.gasUsed}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <span className="text-red-400">Block data not available</span>
-                  )}
-                </div>
-
-                <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
-                  <h4 className="font-medium mb-2">Connection Details</h4>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Provider:</span>
-                    <span>{window.ethereum?.isMetaMask ? 'MetaMask' : 'Unknown'}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-gray-400">Connection Type:</span>
-                    <span>{window.ethereum?.isMetaMask ? 'Injected Web3' : 'Unknown'}</span>
-                  </div>
-                  {window.ethereum?.chainId && (
-                    <div className="flex justify-between mt-1">
-                      <span className="text-gray-400">Chain ID (Hex):</span>
-                      <span>{window.ethereum.chainId}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="flex space-x-2">
-              <button
-                onClick={loadDebugInfo}
-                className="flex-1 py-1 bg-blue-700 hover:bg-blue-600 rounded text-center"
-              >
-                Refresh Data
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    if (!window.ethereum) {
-                      alert("MetaMask not detected! Please install MetaMask extension.");
-                      return;
-                    }
-
-                    // Request account access first
-                    await requestAccounts();
-
-                    // The chainId for local networks (Ganache/Hardhat)
-                    const localChainId = '0x539'; // Hex for 1337 (Ganache)
-
-                    await window.ethereum.request({
-                      method: 'wallet_switchEthereumChain',
-                      params: [{ chainId: localChainId }],
-                    }).catch(async (switchError) => {
-                      // If the chain hasn't been added, add it
-                      if (switchError.code === 4902) {
-                        await window.ethereum.request({
-                          method: 'wallet_addEthereumChain',
-                          params: [{
-                            chainId: localChainId,
-                            chainName: 'Localhost 8545',
-                            nativeCurrency: {
-                              name: 'Ethereum',
-                              symbol: 'ETH',
-                              decimals: 18
-                            },
-                            rpcUrls: ['http://localhost:8545/'],
-                            blockExplorerUrls: null
-                          }]
-                        });
-                      } else {
-                        throw switchError;
-                      }
-                    });
-
-                    // Refresh after network switch
-                    setTimeout(loadDebugInfo, 1000);
-
-                    alert("Switched to local blockchain network. If you're running a local blockchain, make sure it's active on port 8545.");
-                  } catch (err) {
-                    console.error('Failed to switch network', err);
-                    alert(`Failed to switch network: ${err.message}`);
-                  }
-                }}
-                className="flex-1 py-1 bg-purple-700 hover:bg-purple-600 rounded text-center"
-              >
-                Switch to Local
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
           </div>
-        )}
-      </div>
+
+          {!isCollapsed && (
+            <div className="text-xs space-y-3 overflow-auto max-h-[500px] mt-2">
+              {error && (
+                <div className="p-2 bg-red-900/50 border border-red-700 rounded text-red-300">
+                  {error}
+                </div>
+              )}
+
+              {/* Connection details indicator */}
+              <div className="bg-gray-900/50 border border-gray-700 rounded p-2 text-center">
+                <div>
+                  <span className={debugInfo.web3Instance ? 'text-green-400' : 'text-red-400'}>
+                    Web3: {debugInfo.web3Instance ? 'Available' : 'Not Available'}
+                  </span>
+                  {' • '}
+                  <span className={debugInfo.currentAccount ? 'text-green-400' : 'text-orange-400'}>
+                    Wallet: {debugInfo.currentAccount ? 'Connected' : 'Not Connected'}
+                  </span>
+                </div>
+                <div className="text-gray-400 text-[10px] mt-1">
+                  Last refreshed: {lastRefresh.toLocaleTimeString()}
+                </div>
+              </div>
+
+              {/* Connect button for easy wallet connection */}
+              {!debugInfo.currentAccount && (
+                <button
+                  onClick={async () => {
+                    const connected = await requestAccounts();
+                    if (connected) {
+                      loadDebugInfo();
+                    }
+                  }}
+                  className="w-full py-2 bg-green-700 hover:bg-green-600 rounded text-center"
+                >
+                  Connect Wallet
+                </button>
+              )}
+
+              {/* Tabs */}
+              <div className="flex border-b border-gray-700 mb-3">
+                <button
+                  className={`py-1 px-3 -mb-px ${activeTab === 'overview'
+                    ? 'border-b-2 border-cta text-cta'
+                    : 'text-gray-400 hover:text-white'}`}
+                  onClick={() => setActiveTab('overview')}
+                >
+                  Overview
+                </button>
+                <button
+                  className={`py-1 px-3 -mb-px ${activeTab === 'contracts'
+                    ? 'border-b-2 border-cta text-cta'
+                    : 'text-gray-400 hover:text-white'}`}
+                  onClick={() => setActiveTab('contracts')}
+                >
+                  Contracts
+                </button>
+                <button
+                  className={`py-1 px-3 -mb-px ${activeTab === 'network'
+                    ? 'border-b-2 border-cta text-cta'
+                    : 'text-gray-400 hover:text-white'}`}
+                  onClick={() => setActiveTab('network')}
+                >
+                  Network
+                </button>
+              </div>
+
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <>
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <div className="flex justify-between">
+                      <span>Connected:</span>
+                      <span className={debugInfo.web3Connected ? 'text-green-400' : 'text-red-400'}>
+                        {debugInfo.web3Connected ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Network:</span>
+                      <span>{debugInfo.networkName}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Account:</span>
+                      <span className="font-mono">{debugInfo.currentAccount
+                        ? `${debugInfo.currentAccount?.substring(0, 6)}...${debugInfo.currentAccount?.substring(debugInfo.currentAccount.length - 4)}`
+                        : 'Not connected'}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Balance:</span>
+                      <span>{debugInfo.balance}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Gas Price:</span>
+                      <span>{debugInfo.gasPrice}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Product Count:</span>
+                      <span>{debugInfo.productCount}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <h4 className="font-medium mb-1">Contract Status</h4>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>ProductTracking:</span>
+                        <span className={debugInfo.contracts.productTracking.initialized ? 'text-green-400' : 'text-red-400'}>
+                          {debugInfo.contracts.productTracking.initialized ? 'Ready' : 'Not Initialized'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>SupplyChain:</span>
+                        <span className={debugInfo.contracts.supplyChainAgreement.initialized ? 'text-green-400' : 'text-red-400'}>
+                          {debugInfo.contracts.supplyChainAgreement.initialized ? 'Ready' : 'Not Initialized'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>AccessControl:</span>
+                        <span className={debugInfo.contracts.accessControl.initialized ? 'text-green-400' : 'text-red-400'}>
+                          {debugInfo.contracts.accessControl.initialized ? 'Ready' : 'Not Initialized'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Contracts Tab */}
+              {activeTab === 'contracts' && (
+                <div className="space-y-3">
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <h4 className="font-medium mb-2">ProductTracking Contract</h4>
+                    <div className="mb-1">
+                      <span className="text-gray-400">Address: </span>
+                      <span className="font-mono text-[10px] break-all">{debugInfo.contracts.productTracking.address}</span>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-gray-400">Version: </span>
+                      <span>{debugInfo.contractVersions.productTracking || 'Unknown'}</span>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-gray-400">Available Events:</span>
+                      <ul className="ml-4 mt-1 list-disc">
+                        {debugInfo.contracts.productTracking.events.length > 0 ? (
+                          debugInfo.contracts.productTracking.events.map(event => (
+                            <li key={event} className="break-all pr-2 text-[10px] mb-1">
+                              {event}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-red-400">No events found</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Available Methods:</span>
+                      <ul className="ml-4 mt-1 list-disc">
+                        {debugInfo.contracts.productTracking.methods.length > 0 ? (
+                          debugInfo.contracts.productTracking.methods.map(method => (
+                            <li key={method} className="break-all pr-2 text-[10px] mb-1">
+                              {method}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-red-400">No methods found</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <h4 className="font-medium mb-2">SupplyChain Contract</h4>
+                    <div className="mb-1">
+                      <span className="text-gray-400">Address: </span>
+                      <span className="font-mono text-[10px] break-all">{debugInfo.contracts.supplyChainAgreement.address}</span>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-gray-400">Version: </span>
+                      <span>{debugInfo.contractVersions.supplyChain || 'Unknown'}</span>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-gray-400">Available Events:</span>
+                      <ul className="ml-4 mt-1 list-disc">
+                        {debugInfo.contracts.supplyChainAgreement.events.length > 0 ? (
+                          debugInfo.contracts.supplyChainAgreement.events.map(event => (
+                            <li key={event} className="break-all pr-2 text-[10px] mb-1">
+                              {event}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-red-400">No events found</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Available Methods:</span>
+                      <ul className="ml-4 mt-1 list-disc">
+                        {debugInfo.contracts.supplyChainAgreement.methods.length > 0 ? (
+                          debugInfo.contracts.supplyChainAgreement.methods.map(method => (
+                            <li key={method} className="break-all pr-2 text-[10px] mb-1">
+                              {method}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-red-400">No methods found</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <h4 className="font-medium mb-2">AccessControl Contract</h4>
+                    <div className="mb-1">
+                      <span className="text-gray-400">Address: </span>
+                      <span className="font-mono text-[10px] break-all">{debugInfo.contracts.accessControl.address}</span>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-gray-400">Version: </span>
+                      <span>{debugInfo.contractVersions.accessControl || 'Unknown'}</span>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-gray-400">Available Events:</span>
+                      <ul className="ml-4 mt-1 list-disc">
+                        {debugInfo.contracts.accessControl.events.length > 0 ? (
+                          debugInfo.contracts.accessControl.events.map(event => (
+                            <li key={event} className="break-all pr-2 text-[10px] mb-1">
+                              {event}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-red-400">No events found</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Available Methods:</span>
+                      <ul className="ml-4 mt-1 list-disc">
+                        {debugInfo.contracts.accessControl.methods.length > 0 ? (
+                          debugInfo.contracts.accessControl.methods.map(method => (
+                            <li key={method} className="break-all pr-2 text-[10px] mb-1">{method}</li>
+                          ))
+                        ) : (
+                          <li className="text-red-400">No methods found</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Network Tab */}
+              {activeTab === 'network' && (
+                <div className="space-y-3">
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <h4 className="font-medium mb-2">Network Information</h4>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Name:</span>
+                      <span>{debugInfo.networkName}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-gray-400">ID:</span>
+                      <span>{debugInfo.networkId}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-gray-400">Gas Price:</span>
+                      <span>{debugInfo.gasPrice}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <h4 className="font-medium mb-2">Latest Block</h4>
+                    {debugInfo.lastBlock ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Number:</span>
+                          <span>{debugInfo.lastBlock.number}</span>
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className="text-gray-400">Time:</span>
+                          <span>{debugInfo.lastBlock.timestamp}</span>
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className="text-gray-400">Gas Used:</span>
+                          <span>{debugInfo.lastBlock.gasUsed}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-red-400">Block data not available</span>
+                    )}
+                  </div>
+
+                  <div className="p-2 bg-gray-900/50 border border-gray-700 rounded">
+                    <h4 className="font-medium mb-2">Connection Details</h4>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Provider:</span>
+                      <span>{window.ethereum?.isMetaMask ? 'MetaMask' : 'Unknown'}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-gray-400">Connection Type:</span>
+                      <span>{window.ethereum?.isMetaMask ? 'Injected Web3' : 'Unknown'}</span>
+                    </div>
+                    {window.ethereum?.chainId && (
+                      <div className="flex justify-between mt-1">
+                        <span className="text-gray-400">Chain ID (Hex):</span>
+                        <span>{window.ethereum.chainId}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex space-x-2">
+                <button
+                  onClick={loadDebugInfo}
+                  className="flex-1 py-1 bg-blue-700 hover:bg-blue-600 rounded text-center"
+                >
+                  Refresh Data
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!window.ethereum) {
+                        alert("MetaMask not detected! Please install MetaMask extension.");
+                        return;
+                      }
+
+                      // Request account access first
+                      await requestAccounts();
+
+                      // The chainId for local networks (Ganache/Hardhat)
+                      const localChainId = '0x539'; // Hex for 1337 (Ganache)
+
+                      await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: localChainId }],
+                      }).catch(async (switchError) => {
+                        // If the chain hasn't been added, add it
+                        if (switchError.code === 4902) {
+                          await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                              chainId: localChainId,
+                              chainName: 'Localhost 8545',
+                              nativeCurrency: {
+                                name: 'Ethereum',
+                                symbol: 'ETH',
+                                decimals: 18
+                              },
+                              rpcUrls: ['http://localhost:8545/'],
+                              blockExplorerUrls: null
+                            }]
+                          });
+                        } else {
+                          throw switchError;
+                        }
+                      });
+
+                      // Refresh after network switch
+                      setTimeout(loadDebugInfo, 1000);
+
+                      alert("Switched to local blockchain network. If you're running a local blockchain, make sure it's active on port 8545.");
+                    } catch (err) {
+                      console.error('Failed to switch network', err);
+                      alert(`Failed to switch network: ${err.message}`);
+                    }
+                  }}
+                  className="flex-1 py-1 bg-purple-700 hover:bg-purple-600 rounded text-center"
+                >
+                  Switch to Local
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
