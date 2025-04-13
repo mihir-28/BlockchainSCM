@@ -5,6 +5,7 @@ import DashboardHeader from '../components/Dashboard/DashboardHeader';
 import DashboardNav from '../components/Dashboard/DashboardNav';
 import { recentTransactions, kpiData } from '../data/mockData'; // Import mock data
 import { isMobileDevice } from '../utils/deviceDetection';
+import BlockchainDebugger from '../components/Debug/BlockchainDebugger'; // Import the BlockchainDebugger component
 
 const DashboardLayout = () => {
   // STATE HOOKS
@@ -113,6 +114,7 @@ const DashboardLayout = () => {
           kpiData, 
           recentTransactions
         }} />
+        <BlockchainDebugger />
       </div>
     </div>
   );

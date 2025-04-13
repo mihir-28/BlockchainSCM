@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useOutletContext } from 'react-router-dom';
-import { FaPlus, FaFilter, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaFilter, FaSearch, FaEthereum, FaSpinner } from 'react-icons/fa';
 import ProductRegistrationForm from '../components/Products/ProductRegistrationForm';
 import ProductsList from '../components/Products/ProductsList';
 import ProductDetails from '../components/Products/ProductDetails';
-import { products } from '../data/mockData'; // Import products from mockData
+import web3Service from '../services/web3Service';
 
 const ProductsPage = () => {
   // Get currentUser from the outlet context
@@ -16,16 +16,90 @@ const ProductsPage = () => {
     dateFrom: '',
   });
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  
+  // Blockchain related states
+  const [isLoading, setIsLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+  const [blockchainProducts, setBlockchainProducts] = useState([]);
+  const [error, setError] = useState(null);
+  
   const navigate = useNavigate();
 
-  // Initialize filteredProducts with all products
+  // Connect to blockchain and load products
   useEffect(() => {
-    setFilteredProducts(products);
+    const initBlockchain = async () => {
+      setIsLoading(true);
+      try {
+        // Initialize blockchain connection
+        const connected = await web3Service.initWeb3();
+        setIsConnected(connected);
+        
+        if (connected) {
+          // Fetch all products from the blockchain
+          await loadBlockchainProducts();
+        } else {
+          setError("Failed to connect to blockchain. Please check if MetaMask is installed and unlocked.");
+        }
+      } catch (err) {
+        console.error("Blockchain initialization error:", err);
+        setError(`Blockchain error: ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initBlockchain();
   }, []);
+  
+  // Helper to load blockchain products
+  const loadBlockchainProducts = async () => {
+    try {
+      // Get all products from the blockchain
+      const productContract = web3Service.getProductTrackingContract();
+      if (!productContract) {
+        throw new Error("Product tracking contract not initialized");
+      }
+      
+      const productCount = await productContract.methods.productCount().call();
+      const products = [];
+      
+      // Fetch each product
+      for (let i = 1; i <= productCount; i++) {
+        const product = await web3Service.getProduct(i);
+        
+        // Format product data
+        products.push({
+          id: formatBigInt(product.id),
+          name: product.name,
+          manufacturer: product.manufacturer,
+          owner: product.owner,
+          origin: "Blockchain", // Default origin for blockchain products
+          registrationDate: new Date(Number(formatBigInt(product.createTime)) * 1000).toLocaleDateString(),
+          status: "Active", // Default status
+          createTime: formatBigInt(product.createTime),
+          updateTime: formatBigInt(product.updateTime),
+          dataHash: product.dataHash
+        });
+      }
+      
+      setBlockchainProducts(products);
+    } catch (err) {
+      console.error("Error loading blockchain products:", err);
+      setError(`Failed to load products: ${err.message}`);
+      setBlockchainProducts([]);
+    }
+  };
+  
+  // Helper function to format BigInt values
+  const formatBigInt = (value) => {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  };
 
   // Get unique origins for the filter dropdown
-  const uniqueOrigins = [...new Set(products.map(product => product.origin))];
+  const uniqueOrigins = [...new Set(blockchainProducts.map(product => product.origin))];
 
   // Function to handle filter changes
   const handleFilterChange = (e) => {
@@ -47,44 +121,106 @@ const ProductsPage = () => {
   };
 
   // Filter products based on search term and filters
-  useEffect(() => {
-    let result = [...products];
-    
+  const filteredProducts = blockchainProducts.filter(product => {
     // Apply search filter
     if (searchTerm) {
       const lowercasedSearch = searchTerm.toLowerCase();
-      result = result.filter(product => 
-        product.name.toLowerCase().includes(lowercasedSearch) ||
-        product.id.toLowerCase().includes(lowercasedSearch) ||
-        product.manufacturer.toLowerCase().includes(lowercasedSearch)
-      );
+      if (
+        !product.name.toLowerCase().includes(lowercasedSearch) &&
+        !product.id.toString().includes(lowercasedSearch) &&
+        !product.manufacturer.toLowerCase().includes(lowercasedSearch)
+      ) {
+        return false;
+      }
     }
     
     // Apply status filter
-    if (filters.status) {
-      result = result.filter(product => 
-        product.status.toLowerCase() === filters.status.toLowerCase()
-      );
+    if (filters.status && product.status.toLowerCase() !== filters.status.toLowerCase()) {
+      return false;
     }
     
     // Apply origin filter
-    if (filters.origin) {
-      result = result.filter(product => 
-        product.origin === filters.origin
-      );
+    if (filters.origin && product.origin !== filters.origin) {
+      return false;
     }
     
     // Apply date filter
     if (filters.dateFrom) {
       const filterDate = new Date(filters.dateFrom);
-      result = result.filter(product => {
-        const productDate = new Date(product.registrationDate);
-        return productDate >= filterDate;
-      });
+      const productDate = new Date(product.registrationDate);
+      if (productDate < filterDate) {
+        return false;
+      }
     }
     
-    setFilteredProducts(result);
-  }, [searchTerm, filters]);
+    return true;
+  });
+
+  // Set up blockchain event listeners for product updates
+  useEffect(() => {
+    const setupEventListeners = () => {
+      try {
+        const productContract = web3Service.getProductTrackingContract();
+        if (!productContract || !isConnected) return () => {};
+        
+        // Verify events exist before subscribing
+        if (!productContract.events || !productContract.events.ProductCreated) {
+          console.error("ProductCreated event not found in contract");
+          return () => {};
+        }
+
+        // Listen for ProductCreated events
+        const createdSubscription = productContract.events.ProductCreated({})
+          .on('data', (event) => {
+            console.log("New product created:", event);
+            // Reload products when a new one is created
+            loadBlockchainProducts();
+          })
+          .on('error', (error) => {
+            console.error("Error in ProductCreated event:", error);
+          });
+        
+        // Verify ProductTransferred event exists before subscribing
+        let transferredSubscription = null;
+        if (productContract.events.ProductTransferred) {
+          transferredSubscription = productContract.events.ProductTransferred({})
+            .on('data', (event) => {
+              console.log("Product transferred:", event);
+              // Reload products when ownership changes
+              loadBlockchainProducts();
+            })
+            .on('error', (error) => {
+              console.error("Error in ProductTransferred event:", error);
+            });
+        } else {
+          console.warn("ProductTransferred event not found in contract");
+        }
+        
+        // Return cleanup function
+        return () => {
+          try {
+            if (createdSubscription && createdSubscription.removeAllListeners) {
+              createdSubscription.removeAllListeners();
+            }
+            if (transferredSubscription && transferredSubscription.removeAllListeners) {
+              transferredSubscription.removeAllListeners();
+            }
+          } catch (err) {
+            console.error("Error cleaning up event listeners:", err);
+          }
+        };
+      } catch (error) {
+        console.error("Failed to set up event listeners:", error);
+        return () => {};
+      }
+    };
+    
+    let cleanup = () => {};
+    if (isConnected) {
+      cleanup = setupEventListeners() || (() => {});
+    }
+    return cleanup;
+  }, [isConnected]);
 
   return (
     <Routes>
@@ -96,12 +232,26 @@ const ProductsPage = () => {
                 <h2 className="text-xl font-semibold text-text">Product Management</h2>
                 <p className="text-text/60 text-sm">Register and manage your products on the blockchain</p>
               </div>
-              <button 
-                onClick={() => navigate('/dashboard/products/new')}
-                className="bg-cta hover:bg-cta/90 text-background font-medium rounded-lg px-4 py-2 flex items-center transition-colors"
-              >
-                <FaPlus className="mr-2" /> Register New Product
-              </button>
+              
+              {/* Blockchain connection status */}
+              <div className="flex items-center">
+                <div className={`mr-4 px-3 py-1 rounded-full text-sm flex items-center ${
+                  isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                }`}>
+                  <FaEthereum className="mr-1" />
+                  {isConnected ? 'Blockchain Connected' : 'Not Connected'}
+                </div>
+                
+                <button 
+                  onClick={() => navigate('/dashboard/products/new')}
+                  className={`bg-cta hover:bg-cta/90 text-background font-medium rounded-lg px-4 py-2 flex items-center transition-colors ${
+                    !isConnected && 'opacity-50 cursor-not-allowed'
+                  }`}
+                  disabled={!isConnected}
+                >
+                  <FaPlus className="mr-2" /> Register New Product
+                </button>
+              </div>
             </div>
           </div>
 
@@ -177,20 +327,48 @@ const ProductsPage = () => {
             )}
           </div>
 
-          {/* Products List with filtered results */}
-          <ProductsList products={filteredProducts} />
-          
-          {/* Show message when no products match filters */}
-          {filteredProducts.length === 0 && (
-            <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-8 text-center mt-6">
-              <p className="text-text/60">No products match your search criteria</p>
+          {/* Loading state */}
+          {isLoading ? (
+            <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-12 flex justify-center items-center">
+              <div className="flex flex-col items-center">
+                <FaSpinner className="text-cta text-3xl animate-spin mb-4" />
+                <p className="text-text/60">Loading blockchain products...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="bg-panel/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-8 text-center">
+              <p className="text-red-500 mb-4">{error}</p>
               <button
-                onClick={resetFilters}
-                className="mt-4 px-4 py-2 bg-cta/10 text-cta border border-cta/20 rounded-lg hover:bg-cta/20 transition-colors"
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-cta/10 text-cta border border-cta/20 rounded-lg hover:bg-cta/20 transition-colors"
               >
-                Reset Filters
+                Retry Connection
               </button>
             </div>
+          ) : (
+            <>
+              {/* Products List with filtered results */}
+              <ProductsList products={filteredProducts} searchTerm={searchTerm} filters={filters} />
+              
+              {/* Show message when no products match filters */}
+              {filteredProducts.length === 0 && (
+                <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-8 text-center mt-6">
+                  <p className="text-text/60">
+                    {blockchainProducts.length === 0 
+                      ? "No products found on the blockchain. Register your first product to get started."
+                      : "No products match your search criteria"}
+                  </p>
+                  {blockchainProducts.length > 0 && (
+                    <button
+                      onClick={resetFilters}
+                      className="mt-4 px-4 py-2 bg-cta/10 text-cta border border-cta/20 rounded-lg hover:bg-cta/20 transition-colors"
+                    >
+                      Reset Filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       } />

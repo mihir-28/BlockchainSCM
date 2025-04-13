@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "@openzeppelin/contracts": "^5.3.0"
+    "@openzeppelin/contracts": "^5.3.0",
+    "@truffle/hdwallet-provider": "^2.1.15"
   },
   "scripts": {
     "migrate": "truffle migrate && node scripts/copyArtifacts.js"

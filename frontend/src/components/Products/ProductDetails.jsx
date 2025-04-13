@@ -1,143 +1,214 @@
-import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FaArrowLeft, FaCheckCircle, FaTimesCircle, FaQrcode, FaHistory, FaDownload } from 'react-icons/fa';
-import { products } from '../../data/mockData'; // Import products from mockData
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaQrcode, FaDownload, FaHistory, FaCheckCircle, FaTimesCircle, FaExternalLinkAlt, FaSpinner } from 'react-icons/fa';
+import { QRCodeSVG } from 'qrcode.react'; // Changed to use qrcode.react
+import web3Service from '../../services/web3Service';
 
-// We'll keep the detailed sample products for now as they have more information
-// than the basic products in mockData
-const detailedProducts = [
-  { 
-    id: 'PRD001', 
-    name: 'Organic Coffee Beans', 
-    serialNumber: 'SN7824501', 
-    origin: 'Colombia', 
-    dateAdded: '2023-05-15', 
-    status: 'Active',
-    description: 'Premium organic coffee beans sourced directly from local farmers.',
-    manufacturingDate: '2023-04-10',
-    batchNumber: 'B10045',
-    expiryDate: '2024-04-10',
-    category: 'Food & Beverage',
-    subcategory: 'Coffee',
-    weight: '500g',
-    dimensions: '15cm x 10cm x 5cm',
-    certifications: ['Organic', 'Fair Trade', 'Rainforest Alliance'],
-    supplier: 'Colombian Coffee Collective',
-    blockchainInfo: {
-      transactionHash: '0x7c8b5d29cb3fa8ec13a47454681b3c8b12b141a56c9a1e5f77d6c37c17300803',
-      blockNumber: 8573921,
-      timestamp: '2023-05-15 14:32:45'
-    },
-    history: [
-      { event: 'Product Registered', date: '2023-05-15 14:32:45', by: 'Coffee Producers Inc.' },
-      { event: 'Quality Verification', date: '2023-05-16 10:15:22', by: 'Quality Control Dept.' },
-      { event: 'Shipment Initiated', date: '2023-05-18 08:45:11', by: 'Logistics Department' }
-    ]
-  },
-  { 
-    id: 'PRD002', 
-    name: 'Premium Tea Leaves', 
-    serialNumber: 'SN9361507', 
-    origin: 'India', 
-    dateAdded: '2023-05-22', 
-    status: 'Active',
-    description: 'High-quality tea leaves harvested from the highlands of Darjeeling.',
-    manufacturingDate: '2023-05-01',
-    batchNumber: 'B10062',
-    expiryDate: '2024-05-01',
-    category: 'Food & Beverage',
-    subcategory: 'Tea',
-    weight: '250g',
-    dimensions: '12cm x 8cm x 4cm',
-    certifications: ['Organic', 'GMO-Free'],
-    supplier: 'Darjeeling Tea Estates',
-    blockchainInfo: {
-      transactionHash: '0x9a7d3e5f8c21b4d6a2e7f9c0b1d2a3e4f5c6b7a8d9e0f1c2b3a4d5e6f7a8c9b0d1',
-      blockNumber: 8574532,
-      timestamp: '2023-05-22 11:45:32'
-    },
-    history: [
-      { event: 'Product Registered', date: '2023-05-22 11:45:32', by: 'Darjeeling Tea Estates' },
-      { event: 'Quality Verification', date: '2023-05-23 09:30:15', by: 'Quality Control Dept.' },
-      { event: 'Packaging Completed', date: '2023-05-24 14:22:05', by: 'Production Dept.' },
-      { event: 'Shipment Initiated', date: '2023-05-26 08:15:43', by: 'Logistics Department' }
-    ]
-  },
-  { 
-    id: 'PRD003', 
-    name: 'Organic Cacao Nibs', 
-    serialNumber: 'SN5243876', 
-    origin: 'Peru', 
-    dateAdded: '2023-06-05', 
-    status: 'Active',
-    description: 'Raw cacao nibs from sustainably grown cacao beans in Peru.',
-    manufacturingDate: '2023-05-20',
-    batchNumber: 'B10078',
-    expiryDate: '2024-11-20',
-    category: 'Food & Beverage',
-    subcategory: 'Cacao Products',
-    weight: '350g',
-    dimensions: '14cm x 9cm x 4cm',
-    certifications: ['Organic', 'Fair Trade', 'Non-GMO'],
-    supplier: 'Peruvian Cacao Collective',
-    blockchainInfo: {
-      transactionHash: '0xe3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4',
-      blockNumber: 8578921,
-      timestamp: '2023-06-05 10:23:17'
-    },
-    history: [
-      { event: 'Product Registered', date: '2023-06-05 10:23:17', by: 'Peruvian Cacao Collective' },
-      { event: 'Quality Verification', date: '2023-06-06 13:45:22', by: 'Quality Control Dept.' },
-      { event: 'Packaging Completed', date: '2023-06-07 11:32:45', by: 'Production Dept.' },
-      { event: 'Shipment Initiated', date: '2023-06-09 07:55:18', by: 'Logistics Department' },
-      { event: 'Shipment Received', date: '2023-06-15 14:22:31', by: 'Distribution Center' }
-    ]
+// Helper function for formatting
+const formatBigInt = (value) => {
+  if (typeof value === 'bigint') {
+    return value.toString();
   }
-];
+  return value;
+};
+
+const shortenAddress = (address) => {
+  if (!address) return '';
+  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+};
 
 const ProductDetails = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [transferTarget, setTransferTarget] = useState('');
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [accountAddress, setAccountAddress] = useState('');
+  const [showQrModal, setShowQrModal] = useState(false);
   
-  // Try to match by ID - case-insensitive to be more forgiving
-  let product = detailedProducts.find(
-    p => p.id.toLowerCase() === productId.toLowerCase()
-  );
+  // QR code data
+  const [qrCodeData, setQrCodeData] = useState('');
   
-  // If not found, look in the basic products from mockData
-  if (!product) {
-    const basicProduct = products.find(
-      p => p.id.toLowerCase() === productId.toLowerCase()
-    );
+  // Ethereum block explorer URL
+  const blockExplorerUrl = 'https://etherscan.io'; // Change if using a different network
+  
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      setLoading(true);
+      try {
+        // Initialize blockchain connection
+        await web3Service.initWeb3();
+        
+        // Get current account
+        const account = await web3Service.getCurrentAccount();
+        setAccountAddress(account);
+        
+        // Fetch product from blockchain
+        const productData = await web3Service.getProduct(productId);
+        
+        if (productData) {
+          // Format blockchain data
+          const formattedProduct = {
+            id: formatBigInt(productData.id),
+            name: productData.name,
+            manufacturer: productData.manufacturer,
+            owner: productData.owner,
+            createTime: formatBigInt(productData.createTime),
+            updateTime: formatBigInt(productData.updateTime),
+            dataHash: productData.dataHash,
+            
+            // Additional UI fields
+            description: `${productData.name} by ${productData.manufacturer}`,
+            serialNumber: `SN-${formatBigInt(productData.id)}-${Math.floor(Math.random() * 90000 + 10000)}`,
+            origin: 'Blockchain Verified',
+            dateAdded: new Date(Number(productData.createTime) * 1000).toLocaleDateString(),
+            status: 'Active',
+            
+            // Blockchain info
+            blockchainInfo: {
+              transactionHash: '', // Would need to fetch from events
+              blockNumber: '', // Would need to fetch from events
+              timestamp: new Date(Number(productData.createTime) * 1000).toLocaleString()
+            },
+            
+            // Product history - Basic entry for now
+            history: [
+              { 
+                event: 'Product Registered', 
+                date: new Date(Number(productData.createTime) * 1000).toLocaleString(), 
+                by: productData.manufacturer 
+              }
+            ]
+          };
+          
+          setProduct(formattedProduct);
+          
+          // Generate QR code data
+          // Create a verification URL that could be used to verify this product
+          const verificationData = {
+            id: formattedProduct.id,
+            name: formattedProduct.name,
+            manufacturer: formattedProduct.manufacturer,
+            createTime: formattedProduct.createTime,
+            dataHash: formattedProduct.dataHash,
+          };
+          
+          // Base URL of your verification page - update with your actual URL
+          const baseVerificationUrl = `${window.location.origin}/verify`;
+          const qrData = `${baseVerificationUrl}?id=${formattedProduct.id}&hash=${formattedProduct.dataHash}`;
+          setQrCodeData(qrData);
+        } else {
+          setError('Product not found on blockchain');
+        }
+      } catch (err) {
+        console.error('Error fetching blockchain product:', err);
+        setError('Failed to fetch product details from blockchain');
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (basicProduct) {
-      // Create a more detailed version for display
-      product = {
-        ...basicProduct,
-        serialNumber: `SN${Math.floor(Math.random() * 9000000) + 1000000}`,
-        description: `${basicProduct.name} from ${basicProduct.manufacturer}`,
-        batchNumber: `B${Math.floor(Math.random() * 90000) + 10000}`,
-        expiryDate: '2024-12-31',
-        category: 'General Products',
-        subcategory: basicProduct.origin,
-        weight: 'N/A',
-        dimensions: 'N/A',
-        certifications: ['Quality Assured'],
-        supplier: basicProduct.manufacturer,
-        blockchainInfo: {
-          transactionHash: basicProduct.transactionHash || '0x0000...0000',
-          blockNumber: Math.floor(Math.random() * 9000000) + 1000000,
-          timestamp: basicProduct.registrationDate
-        },
-        history: [
-          { event: 'Product Registered', date: basicProduct.registrationDate, by: basicProduct.manufacturer }
-        ]
-      };
-    }
-  }
+    fetchProductDetails();
+  }, [productId]);
   
-  // If product not found
-  if (!product) {
+  // Handle product ownership transfer
+  const handleTransferOwnership = async () => {
+    if (!transferTarget.trim() || !web3Service.getWeb3().utils.isAddress(transferTarget)) {
+      alert('Please enter a valid Ethereum address');
+      return;
+    }
+    
+    setIsTransferring(true);
+    try {
+      const result = await web3Service.transferProduct(transferTarget, productId);
+      console.log('Product transferred:', result);
+      
+      // Update the UI
+      setProduct(prev => ({
+        ...prev,
+        owner: transferTarget,
+        history: [
+          {
+            event: 'Ownership Transferred',
+            date: new Date().toLocaleString(),
+            by: accountAddress
+          },
+          ...prev.history
+        ]
+      }));
+      
+      alert('Ownership transferred successfully!');
+    } catch (err) {
+      console.error('Error transferring ownership:', err);
+      alert('Failed to transfer ownership. Please try again.');
+    } finally {
+      setIsTransferring(false);
+      setTransferTarget('');
+    }
+  };
+
+  // QR code download function using qrcode.react
+  const downloadQrCode = () => {
+    // Get the SVG element
+    const svg = document.getElementById('product-qr-code');
+    if (!svg) return;
+    
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set dimensions 
+    canvas.width = 350;
+    canvas.height = 350;
+    
+    // Convert SVG to data URL
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    
+    img.onload = function() {
+      // Draw image on canvas with white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      // Download as PNG
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `product-${product.id}-qr.png`;
+      link.href = dataURL;
+      link.click();
+    };
+    
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate('/dashboard/products')}
+            className="mr-4 text-text/60 hover:text-cta transition-colors"
+          >
+            <FaArrowLeft />
+          </button>
+          <h1 className="text-2xl font-semibold text-text">Loading Product...</h1>
+        </div>
+        <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-12 flex justify-center items-center">
+          <div className="flex flex-col items-center">
+            <FaSpinner className="text-cta text-3xl animate-spin mb-4" />
+            <p className="text-text/60">Loading blockchain data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
     return (
       <div className="space-y-6">
         <div className="flex items-center mb-4">
@@ -150,7 +221,7 @@ const ProductDetails = () => {
           <h1 className="text-2xl font-semibold text-text">Product Not Found</h1>
         </div>
         <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 text-center">
-          <p className="text-text/60">The requested product could not be found.</p>
+          <p className="text-text/60">{error || 'The requested product could not be found on the blockchain.'}</p>
           <button
             onClick={() => navigate('/dashboard/products')}
             className="mt-4 px-4 py-2 bg-cta text-background rounded-lg"
@@ -161,7 +232,7 @@ const ProductDetails = () => {
       </div>
     );
   }
-  
+
   // Render product details
   return (
     <div className="space-y-6">
@@ -176,7 +247,10 @@ const ProductDetails = () => {
           <h1 className="text-2xl font-semibold text-text">{product.name}</h1>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="bg-cta/10 border border-cta/20 text-cta rounded-lg px-4 py-2 text-sm flex items-center hover:bg-cta/20 transition-colors">
+          <button 
+            onClick={() => setShowQrModal(true)}
+            className="bg-cta/10 border border-cta/20 text-cta rounded-lg px-4 py-2 text-sm flex items-center hover:bg-cta/20 transition-colors"
+          >
             <FaQrcode className="mr-2" /> Generate QR
           </button>
           <button className="bg-panel/60 border border-cta/20 text-text rounded-lg px-4 py-2 text-sm flex items-center hover:bg-panel transition-colors">
@@ -188,6 +262,27 @@ const ProductDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main product info */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Blockchain verification banner */}
+          <div className="bg-cta/10 border border-cta/20 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="bg-cta/20 rounded-full p-2 mr-3">
+                <FaCheckCircle className="text-cta text-lg" />
+              </div>
+              <div>
+                <h3 className="font-medium text-text">Blockchain Verified</h3>
+                <p className="text-xs text-text/70">This product's information is secured on the blockchain</p>
+              </div>
+            </div>
+            <a 
+              href={`${blockExplorerUrl}/address/${product.owner}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-cta hover:text-cta/80 flex items-center text-sm"
+            >
+              View on Explorer <FaExternalLinkAlt className="ml-1 text-xs" />
+            </a>
+          </div>
+          
           {/* Basic details */}
           <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
@@ -220,12 +315,22 @@ const ProductDetails = () => {
                 <p className="text-text">{product.dateAdded}</p>
               </div>
               <div>
-                <p className="text-text/60 text-sm">Batch Number</p>
-                <p className="text-text">{product.batchNumber}</p>
+                <p className="text-text/60 text-sm">Manufacturer</p>
+                <p className="text-text">{product.manufacturer}</p>
               </div>
               <div>
-                <p className="text-text/60 text-sm">Expiry Date</p>
-                <p className="text-text">{product.expiryDate}</p>
+                <p className="text-text/60 text-sm">Current Owner</p>
+                <p className="text-text font-mono text-sm">
+                  {shortenAddress(product.owner)}
+                  <a 
+                    href={`${blockExplorerUrl}/address/${product.owner}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-2 text-cta hover:text-cta/80 inline-flex items-center"
+                  >
+                    <FaExternalLinkAlt className="text-xs" />
+                  </a>
+                </p>
               </div>
               <div className="md:col-span-2">
                 <p className="text-text/60 text-sm">Description</p>
@@ -234,53 +339,24 @@ const ProductDetails = () => {
             </div>
           </div>
 
-          {/* Additional details */}
+          {/* Blockchain details */}
           <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-medium text-text mb-4">Additional Information</h2>
+            <h2 className="text-lg font-medium text-text mb-4">Blockchain Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <div>
-                <p className="text-text/60 text-sm">Category</p>
-                <p className="text-text">{product.category}</p>
+                <p className="text-text/60 text-sm">Created At</p>
+                <p className="text-text">{product.blockchainInfo.timestamp}</p>
               </div>
               <div>
-                <p className="text-text/60 text-sm">Subcategory</p>
-                <p className="text-text">{product.subcategory}</p>
-              </div>
-              <div>
-                <p className="text-text/60 text-sm">Weight</p>
-                <p className="text-text">{product.weight}</p>
-              </div>
-              <div>
-                <p className="text-text/60 text-sm">Dimensions</p>
-                <p className="text-text">{product.dimensions}</p>
-              </div>
-              <div>
-                <p className="text-text/60 text-sm">Manufacturing Date</p>
-                <p className="text-text">{product.manufacturingDate}</p>
-              </div>
-              <div>
-                <p className="text-text/60 text-sm">Supplier</p>
-                <p className="text-text">{product.supplier}</p>
-              </div>
-              <div className="md:col-span-2">
-                <p className="text-text/60 text-sm">Certifications</p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {product.certifications.map((cert, index) => (
-                    <span 
-                      key={index}
-                      className="bg-cta/10 text-cta px-3 py-1 rounded-full text-xs"
-                    >
-                      {cert}
-                    </span>
-                  ))}
-                </div>
+                <p className="text-text/60 text-sm">Data Hash</p>
+                <p className="text-text font-mono text-xs break-all">{product.dataHash}</p>
               </div>
             </div>
           </div>
-
+          
           {/* Event history */}
           <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium text-text">Event History</h2>
               <button className="text-cta text-sm hover:text-cta/80 transition-colors flex items-center">
                 <FaHistory className="mr-1" /> Full History
@@ -306,64 +382,74 @@ const ProductDetails = () => {
           </div>
         </div>
         
-        {/* Blockchain info and QR code */}
+        {/* Sidebar */}
         <div className="space-y-6">
-          <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-medium text-text mb-4">Blockchain Information</h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-text/60 text-sm">Transaction Hash</p>
-                <p className="text-cta text-sm font-mono break-all">{product.blockchainInfo.transactionHash}</p>
-              </div>
-              <div>
-                <p className="text-text/60 text-sm">Block Number</p>
-                <p className="text-text">{product.blockchainInfo.blockNumber}</p>
-              </div>
-              <div>
-                <p className="text-text/60 text-sm">Timestamp</p>
-                <p className="text-text">{product.blockchainInfo.timestamp}</p>
-              </div>
-              <div className="pt-2 mt-2 border-t border-cta/10">
-                <a 
-                  href={`https://etherscan.io/tx/${product.blockchainInfo.transactionHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cta text-sm hover:text-cta/80 flex items-center"
-                >
-                  View on Explorer 
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
+          {/* QR Code */}
+          <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
+            <h2 className="text-lg font-medium text-text mb-4">Product QR Code</h2>
+            <div className="bg-white p-3 rounded-lg mb-4 flex items-center justify-center">
+              {qrCodeData && (
+                <QRCodeSVG 
+                  id="product-qr-code"
+                  value={qrCodeData}
+                  size={160}
+                  level="H"
+                  includeMargin={true}
+                  imageSettings={{
+                    src: "/logo_qr.jpg",
+                    x: undefined,
+                    y: undefined,
+                    height: 40,
+                    width: 40,
+                    excavate: true,
+                  }}
+                />
+              )}
             </div>
-          </div>
-
-          <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm text-center">
-            <h2 className="text-lg font-medium text-text mb-4">QR Code</h2>
-            <div className="bg-white p-4 mx-auto w-48 h-48 flex items-center justify-center rounded-lg shadow-sm">
-              {/* Placeholder for QR code - in a real app, you would generate this dynamically */}
-              <div className="grid grid-cols-10 grid-rows-10 gap-0.5">
-                {Array(100).fill().map((_, i) => (
-                  <div 
-                    key={i}
-                    className={`w-3 h-3 ${Math.random() > 0.3 ? 'bg-black' : 'bg-white'}`}
-                  ></div>
-                ))}
-              </div>
-            </div>
-            <p className="mt-4 text-text/60 text-sm">Scan to verify product authenticity</p>
-            <button className="mt-2 text-cta text-sm hover:text-cta/80 transition-colors">
-              Download QR Code
+            <button 
+              onClick={downloadQrCode}
+              className="w-full py-2 bg-cta/10 hover:bg-cta/20 text-cta border border-cta/30 rounded-lg flex items-center justify-center transition-colors"
+            >
+              <FaDownload className="mr-2" /> Download QR Code
             </button>
           </div>
           
+          {/* Transfer Ownership */}
+          <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
+            <h2 className="text-lg font-medium text-text mb-4">Transfer Ownership</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-text/90 mb-1 text-sm">Recipient Address</label>
+                <input
+                  type="text"
+                  value={transferTarget}
+                  onChange={(e) => setTransferTarget(e.target.value)}
+                  placeholder="0x..."
+                  className="w-full px-3 py-2 bg-background/50 border border-cta/20 rounded-md focus:outline-none focus:border-cta/50 font-mono text-sm"
+                />
+              </div>
+              <button 
+                onClick={handleTransferOwnership}
+                disabled={isTransferring || !transferTarget.trim()}
+                className="w-full py-2 bg-cta/10 hover:bg-cta/20 text-cta border border-cta/30 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isTransferring ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" /> Transferring...
+                  </>
+                ) : (
+                  <>
+                    <FaHistory className="mr-2" /> Transfer Ownership
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          
+          {/* Additional Actions */}
           <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
             <h2 className="text-lg font-medium text-text mb-4">Actions</h2>
             <div className="space-y-3">
-              <button className="w-full py-2 bg-cta/10 hover:bg-cta/20 text-cta border border-cta/30 rounded-lg flex items-center justify-center transition-colors">
-                <FaHistory className="mr-2" /> Transfer Ownership
-              </button>
               <button className="w-full py-2 bg-background/30 hover:bg-background/50 text-text border border-cta/10 rounded-lg flex items-center justify-center transition-colors">
                 <FaQrcode className="mr-2" /> Update Status
               </button>
@@ -374,6 +460,55 @@ const ProductDetails = () => {
           </div>
         </div>
       </div>
+      
+      {/* QR Code Modal */}
+      {showQrModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div className="bg-panel border border-cta/20 rounded-2xl p-8 max-w-lg w-full">
+            <h2 className="text-2xl font-medium text-text mb-6">Product Verification QR Code</h2>
+            
+            <div className="flex flex-col items-center mb-6">
+              <div className="bg-white p-6 rounded-xl mb-6">
+                {qrCodeData && (
+                  <QRCodeSVG 
+                    id="product-qr-modal-code"
+                    value={qrCodeData}
+                    size={240}
+                    level="H"
+                    includeMargin={true}
+                    imageSettings={{
+                      src: "/images/logo-small.png",
+                      height: 36,
+                      width: 36,
+                      excavate: true,
+                    }}
+                  />
+                )}
+              </div>
+              
+              <p className="text-text/70 text-center text-sm mb-4">
+                Scan this QR code to verify the authenticity of the product on the blockchain
+              </p>
+              
+              <button
+                onClick={downloadQrCode}
+                className="px-6 py-2 bg-cta/10 hover:bg-cta/20 text-cta border border-cta/30 rounded-lg flex items-center justify-center transition-colors"
+              >
+                <FaDownload className="mr-2" /> Download QR Code
+              </button>
+            </div>
+            
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="px-6 py-2 bg-background/50 hover:bg-background text-text border border-cta/20 rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

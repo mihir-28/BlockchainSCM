@@ -47,27 +47,56 @@ export const initWeb3 = async () => {
   }
 };
 
+// Also update the initContracts function to add error handling
 const initContracts = () => {
-  // Initialize contract instances if addresses are available
-  if (CONTRACT_ADDRESSES.supplyChain) {
+  try {
+    // Log network ID to ensure we're using the right network
+    web3Instance.eth.net.getId().then(networkId => {
+      console.log("Connected to network ID:", networkId);
+    });
+    
+    // Verify contract ABIs
+    if (!SupplyChainAgreementABI.abi) {
+      console.error("SupplyChainAgreement ABI is invalid");
+      return false;
+    }
+    
+    if (!ProductTrackingABI.abi) {
+      console.error("ProductTracking ABI is invalid");
+      return false;
+    }
+    
+    if (!AccessControlABI.abi) {
+      console.error("AccessControl ABI is invalid");
+      return false;
+    }
+    
+    // Initialize contract instances with better error handling
     supplyChainAgreement = new web3Instance.eth.Contract(
       SupplyChainAgreementABI.abi,
       CONTRACT_ADDRESSES.supplyChain
     );
-  }
-
-  if (CONTRACT_ADDRESSES.productTracking) {
+    
     productTracking = new web3Instance.eth.Contract(
       ProductTrackingABI.abi,
       CONTRACT_ADDRESSES.productTracking
     );
-  }
-
-  if (CONTRACT_ADDRESSES.accessControl) {
+    
     accessControl = new web3Instance.eth.Contract(
       AccessControlABI.abi,
       CONTRACT_ADDRESSES.accessControl
     );
+    
+    console.log("Contracts initialized:", {
+      supplyChainAddress: CONTRACT_ADDRESSES.supplyChain,
+      productTrackingAddress: CONTRACT_ADDRESSES.productTracking,
+      accessControlAddress: CONTRACT_ADDRESSES.accessControl
+    });
+    
+    return true;
+  } catch (error) {
+    console.error("Error initializing contracts:", error);
+    return false;
   }
 };
 
@@ -173,6 +202,31 @@ export const getProduct = async (productId) => {
   }
 };
 
+export const getAllProducts = async () => {
+  try {
+    const productCount = await productTracking.methods.productCount().call();
+    const products = [];
+    
+    for (let i = 1; i <= parseInt(productCount); i++) {
+      const product = await getProduct(i);
+      products.push({
+        id: formatBigInt(product.id),
+        name: product.name,
+        manufacturer: product.manufacturer,
+        owner: product.owner,
+        createTime: formatBigInt(product.createTime),
+        updateTime: formatBigInt(product.updateTime),
+        dataHash: product.dataHash
+      });
+    }
+    
+    return products;
+  } catch (error) {
+    console.error('Error getting all products:', error);
+    throw error;
+  }
+};
+
 // Access Control methods
 export const grantRole = async (account, role) => {
   try {
@@ -201,7 +255,21 @@ export const checkRole = async (account, role) => {
 
 // Helper functions
 export const getSupplyChainContract = () => supplyChainAgreement;
-export const getProductTrackingContract = () => productTracking;
+
+// Add these logging features to help debug
+export const getProductTrackingContract = () => {
+  if (!productTracking) {
+    console.error("ProductTracking contract not initialized");
+    return null;
+  }
+  
+  // Log available events to help debug
+  const events = Object.keys(productTracking.events || {});
+  console.log("Available events in ProductTracking contract:", events);
+  
+  return productTracking;
+};
+
 export const getAccessControlContract = () => accessControl;
 
 // Get the web3 instance
@@ -219,6 +287,7 @@ export default {
   createProduct,
   transferProduct,
   getProduct,
+  getAllProducts,
   grantRole,
   checkRole,
   getSupplyChainContract,

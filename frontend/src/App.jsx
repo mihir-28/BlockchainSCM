@@ -16,6 +16,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import OverviewPage from "./components/Dashboard/OverviewPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetails from "./components/Products/ProductDetails";
+import VerifyProductPage from './pages/VerifyProductPage';
 import TransactionsPage from "./pages/TransactionsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -53,22 +54,22 @@ const AppContent = () => {
   const location = useLocation();
   const prevLocationRef = useRef(location);
   const currentPath = location.pathname;
-  
+
   // Track if navigation is between dashboard pages
   useEffect(() => {
     prevLocationRef.current = location;
   }, [location]);
-  
+
   // First check: Is this a route that never uses transitions?
   const isStaticNoTransitionRoute = ROUTES_WITHOUT_TRANSITIONS.some(route =>
     currentPath === route || currentPath.startsWith(route + '/')
   );
-  
+
   // Second check: Is this internal dashboard navigation?
   const currentIsDashboard = currentPath.startsWith(DASHBOARD_PREFIX);
   const prevIsDashboard = prevLocationRef.current.pathname.startsWith(DASHBOARD_PREFIX);
   const isDashboardInternalNavigation = currentIsDashboard && prevIsDashboard;
-  
+
   // Disable transitions if either condition is met
   const transitionsDisabled = isStaticNoTransitionRoute || isDashboardInternalNavigation;
 
@@ -94,8 +95,9 @@ const AppContent = () => {
             <Route path="privacy-policy" element={<PolicyPage />} />
             <Route path="support" element={<SupportPage />} />
             <Route path="faq" element={<FAQPage />} />
+            <Route path="verify" element={<VerifyProductPage />} />
           </Route>
-          
+
           {/* Dashboard routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
@@ -118,7 +120,7 @@ const AppContent = () => {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
-          
+
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
 

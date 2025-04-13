@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaBox, FaSave } from 'react-icons/fa';
-import { v4 as uuidv4 } from 'uuid'; // You'll need to install this: npm install uuid
+import web3Service from '../../services/web3Service';
 
 const ProductRegistrationForm = ({ currentUser }) => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [account, setAccount] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     manufacturer: currentUser?.company || '',
@@ -15,11 +17,30 @@ const ProductRegistrationForm = ({ currentUser }) => {
   });
   const [errors, setErrors] = useState({});
 
+  // Connect to blockchain on component mount
+  useEffect(() => {
+    const connectToBlockchain = async () => {
+      try {
+        const connected = await web3Service.initWeb3();
+        setIsConnected(connected);
+        
+        if (connected) {
+          const currentAccount = await web3Service.getCurrentAccount();
+          setAccount(currentAccount);
+        }
+      } catch (err) {
+        console.error('Error connecting to blockchain:', err);
+      }
+    };
+    
+    connectToBlockchain();
+  }, []);
+
   const countries = [
     'United States', 'China', 'India', 'Brazil', 'Germany', 'Japan',
     'United Kingdom', 'France', 'Italy', 'Canada', 'South Korea', 'Australia',
     'Spain', 'Mexico', 'Indonesia', 'Netherlands', 'Saudi Arabia', 'Turkey',
-    'Switzerland', 'Colombia', 'Singapore', 'Peru', 'India'
+    'Switzerland', 'Colombia', 'Singapore', 'Peru',
   ].sort();
 
   const handleChange = (e) => {
@@ -29,7 +50,6 @@ const ProductRegistrationForm = ({ currentUser }) => {
       [name]: value
     }));
 
-    // Clear error when typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -68,35 +88,55 @@ const ProductRegistrationForm = ({ currentUser }) => {
       setIsSubmitting(true);
       
       try {
-        // Generate a product ID with format PRD + random part
-        const productId = `PRD${uuidv4().substring(0, 6).toUpperCase()}`;
+        // Create blockchain data hash from product details
+        const web3 = web3Service.getWeb3();
+        const dataHash = web3.utils.sha3(JSON.stringify({
+          name: formData.name,
+          manufacturer: formData.manufacturer,
+          origin: formData.origin,
+          description: formData.description,
+          status: formData.status,
+          timestamp: Date.now()
+        }));
         
-        // In a real app, you would send this to your backend/blockchain
-        // For now, let's simulate the registration with a timeout
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Create product on blockchain
+        const result = await web3Service.createProduct(
+          formData.name,
+          formData.manufacturer,
+          dataHash
+        );
         
-        // Create a new product object
-        const newProduct = {
-          id: productId,
+        console.log("Product registered on blockchain:", result);
+        
+        // Extract product ID from blockchain transaction
+        let productId;
+        if (result.events && result.events.ProductCreated) {
+          productId = result.events.ProductCreated.returnValues.productId;
+          // Format BigInt productId to string if needed
+          if (typeof productId === 'bigint') {
+            productId = productId.toString();
+          }
+        }
+        
+        // You would typically send additional product details to your backend here
+        // For now just log it and navigate
+        console.log("Additional product details:", {
+          blockchainId: productId,
           name: formData.name,
           manufacturer: formData.manufacturer,
           origin: formData.origin,
           status: formData.status,
           description: formData.description,
-          registrationDate: new Date().toISOString().split('T')[0],
-          transactionHash: `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
-        };
-        
-        // In a real app, you would store this in your database/blockchain
-        // For now, let's console log it
-        console.log("New product registered:", newProduct);
+          registrationDate: new Date().toISOString(),
+          transactionHash: result.transactionHash,
+        });
         
         // Show success message and redirect
-        alert('Product registered successfully!');
+        alert('Product successfully registered on blockchain!');
         navigate('/dashboard/products');
       } catch (error) {
         console.error("Error registering product:", error);
-        alert('Failed to register product. Please try again.');
+        alert('Failed to register product on blockchain. Please try again.');
       } finally {
         setIsSubmitting(false);
       }
@@ -105,17 +145,36 @@ const ProductRegistrationForm = ({ currentUser }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center mb-4">
-        <button
-          onClick={() => navigate('/dashboard/products')}
-          className="mr-4 text-text/60 hover:text-cta transition-colors"
-        >
-          <FaArrowLeft />
-        </button>
-        <h1 className="text-2xl font-semibold text-text">Register New Product</h1>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <button
+            onClick={() => navigate('/dashboard/products')}
+            className="mr-4 text-text/60 hover:text-cta transition-colors"
+          >
+            <FaArrowLeft />
+          </button>
+          <h1 className="text-2xl font-semibold text-text">Register New Product</h1>
+        </div>
+        
+        {/* Show blockchain connection status */}
+        <div className={`px-3 py-1 rounded-full text-sm flex items-center ${
+          isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+        }`}>
+          {isConnected ? 'Blockchain Connected' : 'Not Connected'}
+        </div>
       </div>
 
       <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
+        {!isConnected ? (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+            <p className="text-red-500">Please connect to the blockchain to register products.</p>
+          </div>
+        ) : (
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-6">
+            <p className="text-green-500">Connected with account: {account}</p>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Product Name */}
@@ -226,8 +285,12 @@ const ProductRegistrationForm = ({ currentUser }) => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-3 bg-cta hover:bg-cta/90 text-background font-medium rounded-lg transition-colors flex items-center justify-center"
+              disabled={isSubmitting || !isConnected}
+              className={`px-6 py-3 ${
+                isConnected 
+                  ? 'bg-cta hover:bg-cta/90' 
+                  : 'bg-gray-400 cursor-not-allowed'
+              } text-background font-medium rounded-lg transition-colors flex items-center justify-center`}
             >
               {isSubmitting ? (
                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -236,7 +299,7 @@ const ProductRegistrationForm = ({ currentUser }) => {
                 </svg>
               ) : (
                 <>
-                  <FaSave className="mr-2" /> Register Product
+                  <FaSave className="mr-2" /> Register on Blockchain
                 </>
               )}
             </button>
