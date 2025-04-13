@@ -9,6 +9,7 @@ const BlockchainDebugger = () => {
     networkName: '',
     gasPrice: '',
     balance: '',
+    balanceInr: '',
     contracts: {
       productTracking: {
         address: '',
@@ -134,9 +135,21 @@ const BlockchainDebugger = () => {
 
         // Get account balance
         let balance = '0';
+        let balanceInr = '0';
         if (currentAccount) {
           balance = await web3.eth.getBalance(currentAccount);
           balance = web3.utils.fromWei(balance, 'ether');
+          
+          // Fetch ETH to INR conversion rate (in production, use a real API)
+          try {
+            // Simple estimation (1 ETH ≈ 180,000 INR as of April 2025)
+            // In a real app, you would fetch this from a price API like CoinGecko
+            const ethInrRate = 180000;
+            balanceInr = (parseFloat(balance) * ethInrRate).toFixed(2);
+          } catch (convErr) {
+            console.warn("Failed to get ETH/INR conversion:", convErr);
+            balanceInr = "N/A";
+          }
         }
 
         // Get latest block
@@ -258,6 +271,7 @@ const BlockchainDebugger = () => {
           networkName,
           gasPrice: `${parseFloat(gasPriceGwei).toFixed(2)} Gwei`,
           balance: `${parseFloat(balance).toFixed(4)} ETH`,
+          balanceInr: `₹${balanceInr}`,
           web3Instance: !!web3,
           contracts: {
             productTracking: {
@@ -454,6 +468,10 @@ const BlockchainDebugger = () => {
                     <div className="flex justify-between mt-1">
                       <span>Balance:</span>
                       <span>{debugInfo.balance}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>Value in INR:</span>
+                      <span>{debugInfo.balanceInr}</span>
                     </div>
                     <div className="flex justify-between mt-1">
                       <span>Gas Price:</span>
