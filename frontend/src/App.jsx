@@ -29,6 +29,10 @@ import SupportPage from './pages/SupportPage';
 import FAQPage from './pages/FAQPage';
 import NotFound from "./pages/NotFound";
 
+
+// Blockchain related imports
+import BlockchainTest from "./components/Blockchain/BlockchainTest";
+
 import './index.css';
 
 // Import mock data for dashboard
@@ -117,6 +121,9 @@ const AppContent = () => {
           
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
+
+          {/* Blockchain test route (for development purposes) */}
+          <Route path="/btest" element={<BlockchainTest />} />
         </Routes>
       </PageTransition>
     </>

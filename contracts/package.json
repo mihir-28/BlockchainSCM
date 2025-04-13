@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "@openzeppelin/contracts": "^5.3.0"
+  },
+  "scripts": {
+    "migrate": "truffle migrate && node scripts/copyArtifacts.js"
   }
 }
