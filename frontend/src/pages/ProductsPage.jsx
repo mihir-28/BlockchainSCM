@@ -30,11 +30,16 @@ const ProductsPage = () => {
     const initBlockchain = async () => {
       setIsLoading(true);
       try {
-        // Initialize blockchain connection
+        // Initialize blockchain connection with more thorough checks
         const connected = await web3Service.initWeb3();
-        setIsConnected(connected);
+        const web3Instance = web3Service.getWeb3();
+        const account = await web3Service.getCurrentAccount();
+        
+        // Only consider connected if we have all three: connection, web3 instance, and account
+        const fullyConnected = connected && !!web3Instance && !!account;
+        setIsConnected(fullyConnected);
 
-        if (connected) {
+        if (fullyConnected) {
           // Fetch all products from the blockchain
           await loadBlockchainProducts();
         } else {
@@ -43,6 +48,7 @@ const ProductsPage = () => {
       } catch (err) {
         console.error("Blockchain initialization error:", err);
         setError(`Blockchain error: ${err.message}`);
+        setIsConnected(false);
       } finally {
         setIsLoading(false);
       }
@@ -233,18 +239,24 @@ const ProductsPage = () => {
                 <p className="text-text/60 text-sm">Register and manage your products on the blockchain</p>
               </div>
 
-              {/* Blockchain connection status */}
-              <div className="flex flex-col sm:flex-row w-full items-center sm:items-center gap-3">
-                <div className={`w-full sm:w-auto px-3 py-1.5 rounded-full text-sm flex items-center justify-center ${isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                  }`}>
+              {/* Update breakpoints to match parent (md instead of sm) */}
+              <div className="flex flex-col md:flex-row w-full md:w-auto items-center gap-3">
+                <div className={`w-full md:w-auto px-3 py-1.5 rounded-full text-sm flex items-center justify-center ${
+                  isConnected && web3Service.getWeb3() && web3Service.getCurrentAccount()
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-red-500/20 text-red-400'
+                }`}>
                   <FaEthereum className="mr-1" />
-                  {isConnected ? 'Blockchain Connected' : 'Not Connected'}
+                  {isConnected && web3Service.getWeb3() && web3Service.getCurrentAccount()
+                    ? 'Blockchain Connected'
+                    : 'Not Connected'}
                 </div>
 
                 <button
                   onClick={() => navigate('/dashboard/products/new')}
-                  className={`w-full sm:w-auto bg-cta hover:bg-cta/90 text-background font-medium rounded-lg px-4 py-2.5 flex items-center justify-center transition-colors ${!isConnected && 'opacity-50 cursor-not-allowed'
-                    }`}
+                  className={`w-full md:w-auto bg-cta hover:bg-cta/90 text-background font-medium rounded-lg px-4 py-2.5 flex items-center justify-center transition-colors ${
+                    !isConnected && 'opacity-50 cursor-not-allowed'
+                  }`}
                   disabled={!isConnected}
                 >
                   <FaPlus className="mr-2" /> Register New Product

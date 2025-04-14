@@ -360,12 +360,22 @@ const BlockchainDebugger = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isCircleMode ? (
-        // Circle mode - just a dot showing connection status
+        // Circle mode - dot showing connection status with improved logic
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer bg-gray-800/90 shadow-lg"
           onClick={() => setIsCircleMode(false)}
         >
-          <span className={`w-4 h-4 rounded-full ${debugInfo.web3Connected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+          <span
+            className={`w-4 h-4 rounded-full ${debugInfo.web3Connected && debugInfo.currentAccount
+                ? 'bg-green-500'
+                : 'bg-red-500'
+              }`}
+            title={
+              debugInfo.web3Connected && debugInfo.currentAccount
+                ? 'Blockchain Connected'
+                : 'Not Connected'
+            }
+          ></span>
         </div>
       ) : (
         // Original rectangle mode
@@ -374,7 +384,10 @@ const BlockchainDebugger = () => {
         >
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-sm font-medium flex items-center">
-              <span className={`w-2 h-2 rounded-full mr-2 ${debugInfo.web3Connected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+              <span className={`w-2 h-2 rounded-full mr-2 ${debugInfo.web3Connected && debugInfo.currentAccount
+                  ? 'bg-green-500'
+                  : 'bg-red-500'
+                }`}></span>
               Blockchain Debugger
             </h3>
             <div className="flex items-center space-x-2 ml-4">
