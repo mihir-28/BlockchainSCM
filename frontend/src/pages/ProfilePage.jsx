@@ -46,7 +46,7 @@ const ProfilePage = () => {
   const [walletCopied, setWalletCopied] = useState(false);
   
   // Wallet balance states
-  const [walletBalance, setWalletBalance] = useState(null);
+  const [walletBalance, setWalletBalance] = useState({ amount: null, network: null });
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
 
@@ -240,71 +240,67 @@ const ProfilePage = () => {
     });
   };
 
-  // Function to fetch wallet balance from Sepolia
-  const fetchWalletBalance = async () => {
-    if (!profileData.walletAddress) return;
+// Function to fetch wallet balance from the currently connected network
+const fetchWalletBalance = async () => {
+  if (!profileData.walletAddress) return;
+  
+  setIsLoadingBalance(true);
+  try {
+    const { ethereum } = window;
+    if (!ethereum) {
+      console.error("MetaMask not available");
+      return;
+    }
     
-    setIsLoadingBalance(true);
-    try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.error("MetaMask not available");
-        return;
-      }
-      
-      // Request to switch to Sepolia network
-      try {
-        await ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0xAA36A7' }], // Sepolia chainId
-        });
-      } catch (switchError) {
-        // This error code indicates that the chain hasn't been added to MetaMask
-        if (switchError.code === 4902) {
-          await ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0xAA36A7',
-              chainName: 'Sepolia Test Network',
-              nativeCurrency: {
-                name: 'Sepolia ETH',
-                symbol: 'ETH',
-                decimals: 18
-              },
-              rpcUrls: ['https://sepolia.infura.io/v3/'],
-              blockExplorerUrls: ['https://sepolia.etherscan.io']
-            }]
-          });
-        } else {
-          console.error("Error switching to Sepolia:", switchError);
-          return;
-        }
-      }
+    // Get current network information
+    const chainId = await ethereum.request({ method: 'eth_chainId' });
+    const networkName = getNetworkName(chainId);
+    
+    // Get balance from current network without forcing a switch
+    const balanceHex = await ethereum.request({
+      method: 'eth_getBalance',
+      params: [profileData.walletAddress, 'latest']
+    });
+    
+    // Convert from wei to ETH (1 ETH = 10^18 wei)
+    const balanceWei = parseInt(balanceHex, 16);
+    const balanceETH = balanceWei / 1e18;
+    
+    setWalletBalance({
+      amount: balanceETH.toFixed(4),
+      network: networkName
+    });
+  } catch (error) {
+    console.error("Error fetching wallet balance:", error);
+  } finally {
+    setIsLoadingBalance(false);
+  }
 
-      // Get balance
-      const balanceHex = await ethereum.request({
-        method: 'eth_getBalance',
-        params: [profileData.walletAddress, 'latest']
-      });
-      
-      // Convert from wei to ETH (1 ETH = 10^18 wei)
-      const balanceWei = parseInt(balanceHex, 16);
-      const balanceETH = balanceWei / 1e18;
-      
-      setWalletBalance(balanceETH.toFixed(4));
-    } catch (error) {
-      console.error("Error fetching wallet balance:", error);
-    } finally {
-      setIsLoadingBalance(false);
-    }
+  // After successfully fetching balance, also fetch current prices
+  try {
+    await fetchEthPrice();
+  } catch (error) {
+    console.error("Error updating ETH prices:", error);
+  }
+};
 
-    // After successfully fetching balance, also fetch current prices
-    try {
-      await fetchEthPrice();
-    } catch (error) {
-      console.error("Error updating ETH prices:", error);
-    }
+// Helper function to get network name from chainId
+const getNetworkName = (chainId) => {
+  const networks = {
+    '0x1': 'Ethereum Mainnet',
+    '0x3': 'Ropsten Testnet',
+    '0x4': 'Rinkeby Testnet',
+    '0x5': 'Goerli Testnet',
+    '0xaa36a7': 'Sepolia Testnet',
+    '0x38': 'Binance Smart Chain',
+    '0x89': 'Polygon Mainnet',
+    '0x13881': 'Polygon Mumbai',
+    '0x539': 'Local Network',
+    '0x7a69': 'Hardhat Network'
   };
+  
+  return networks[chainId.toLowerCase()] || `Chain ID: ${chainId}`;
+};
 
   // Add this function with your other functions
   const fetchEthPrice = async () => {
@@ -688,7 +684,7 @@ const ProfilePage = () => {
               {/* Show balance section */}
               {showBalance && profileData.walletAddress && (
                 <div className="mt-3 border-t border-cta/10 pt-3">
-                  <p className="text-xs text-text/50 mb-1">Sepolia ETH Balance</p>
+                  <p className="text-xs text-text/50 mb-1">Wallet Balance</p>
                   <div className="flex items-center">
                     <FaEthereum className="text-cta mr-2" />
                     {isLoadingBalance ? (
@@ -700,36 +696,35 @@ const ProfilePage = () => {
                         <span className="text-text/50 text-xs">Loading...</span>
                       </div>
                     ) : (
-                      <div className="font-mono text-text/80">
-                        {walletBalance} ETH
+                      <div>
+                        <div className="font-mono text-text/80">
+                          {walletBalance?.amount || '0.0000'} ETH
+                        </div>
+                        <div className="text-xs text-text/50">
+                          on {walletBalance?.network || 'Unknown Network'}
+                        </div>
                       </div>
                     )}
                   </div>
                   
                   {/* Currency conversions */}
-                  {!isLoadingBalance && walletBalance && ethPrice.usd && (
+                  {!isLoadingBalance && walletBalance?.amount && ethPrice.usd && (
                     <div className="mt-2 text-xs border-t border-cta/10 pt-2">
                       <div className="flex justify-between text-text/70 mb-1">
                         <span>USD Value:</span>
                         <span className="font-mono">
-                          ${(parseFloat(walletBalance) * ethPrice.usd).toFixed(2)}
+                          ${(parseFloat(walletBalance.amount) * ethPrice.usd).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between text-text/70">
                         <span>INR Value:</span>
                         <span className="font-mono">
-                          ₹{(parseFloat(walletBalance) * ethPrice.inr).toFixed(2)}
+                          ₹{(parseFloat(walletBalance.amount) * ethPrice.inr).toFixed(2)}
                         </span>
                       </div>
                       <div className="text-text/40 text-xxs mt-1 flex items-center">
                         <span className={`h-1.5 w-1.5 rounded-full ${isPriceLoading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'} mr-1`}></span>
                         {isPriceLoading ? 'Updating rates...' : 'Live exchange rates via CoinGecko'}
-                      </div>
-                      <div className="text-xxs text-text/40 mt-1">
-                        Rates updated: {new Date().toLocaleTimeString()}
-                      </div>
-                      <div className="text-xxs text-text/40 mt-1">
-                        *Values may differ from wallet apps due to different price sources
                       </div>
                     </div>
                   )}

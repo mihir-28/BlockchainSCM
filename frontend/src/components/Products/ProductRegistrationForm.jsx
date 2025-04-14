@@ -99,10 +99,21 @@ const ProductRegistrationForm = ({ currentUser }) => {
           timestamp: Date.now()
         }));
         
-        // Create product on blockchain
+        // Log the parameters being sent to ensure origin is included
+        console.log("Sending to blockchain:", {
+          name: formData.name,
+          manufacturer: formData.manufacturer,
+          origin: formData.origin,
+          description: formData.description,
+          dataHash
+        });
+        
+        // Create product on blockchain with origin parameter
         const result = await web3Service.createProduct(
           formData.name,
           formData.manufacturer,
+          formData.origin,
+          formData.description,
           dataHash
         );
         

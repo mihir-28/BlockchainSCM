@@ -167,14 +167,18 @@ export const getShipment = async (shipmentId) => {
 };
 
 // Product Tracking methods
-export const createProduct = async (name, manufacturer, dataHash) => {
+export const createProduct = async (name, manufacturer, origin, description, dataHash) => {
   try {
-    const account = await getCurrentAccount();
-    return await productTracking.methods
-      .createProduct(name, manufacturer, dataHash)
-      .send({ from: account });
+    const productContract = getProductTrackingContract();
+    const accounts = await web3Instance.eth.getAccounts();
+    
+    const result = await productContract.methods
+      .createProduct(name, manufacturer, origin, description, dataHash)
+      .send({ from: accounts[0] });
+      
+    return result;
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.error("Error creating product:", error);
     throw error;
   }
 };

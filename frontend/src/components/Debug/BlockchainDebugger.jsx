@@ -139,16 +139,34 @@ const BlockchainDebugger = () => {
         if (currentAccount) {
           balance = await web3.eth.getBalance(currentAccount);
           balance = web3.utils.fromWei(balance, 'ether');
-          
-          // Fetch ETH to INR conversion rate (in production, use a real API)
+
+          // Fetch ETH to INR conversion rate using CoinGecko API
           try {
-            // Simple estimation (1 ETH ≈ 180,000 INR as of April 2025)
-            // In a real app, you would fetch this from a price API like CoinGecko
-            const ethInrRate = 180000;
-            balanceInr = (parseFloat(balance) * ethInrRate).toFixed(2);
+            // Fetch real-time ETH price from CoinGecko API
+            const response = await fetch(
+              'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=inr'
+            );
+            const data = await response.json();
+
+            if (data && data.ethereum && data.ethereum.inr) {
+              const ethInrRate = data.ethereum.inr;
+              balanceInr = (parseFloat(balance) * ethInrRate).toFixed(2);
+            } else {
+              throw new Error("Invalid response from CoinGecko API");
+            }
           } catch (convErr) {
-            console.warn("Failed to get ETH/INR conversion:", convErr);
-            balanceInr = "N/A";
+            console.warn("Failed to get ETH/INR conversion from CoinGecko:", convErr);
+
+            // Fallback to estimated value if API fails
+            try {
+              // Fallback estimation (update this periodically if needed)
+              const estimatedEthInrRate = 180000;
+              balanceInr = (parseFloat(balance) * estimatedEthInrRate).toFixed(2);
+              console.info("Using fallback ETH/INR estimation");
+            } catch (fallbackErr) {
+              console.error("Fallback conversion also failed:", fallbackErr);
+              balanceInr = "N/A";
+            }
           }
         }
 
@@ -343,7 +361,7 @@ const BlockchainDebugger = () => {
     <div className="fixed bottom-4 right-4 z-50">
       {isCircleMode ? (
         // Circle mode - just a dot showing connection status
-        <div 
+        <div
           className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer bg-gray-800/90 shadow-lg"
           onClick={() => setIsCircleMode(false)}
         >
@@ -366,8 +384,8 @@ const BlockchainDebugger = () => {
               >
                 {isCollapsed ? 'Expand' : 'Collapse'}
               </button>
-              <button 
-                onClick={() => setIsCircleMode(true)} 
+              <button
+                onClick={() => setIsCircleMode(true)}
                 className="text-gray-400 hover:text-white"
                 title="Minimize to dot"
               >

@@ -16,13 +16,13 @@ const ProductsPage = () => {
     dateFrom: '',
   });
   const [filterOpen, setFilterOpen] = useState(false);
-  
+
   // Blockchain related states
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [blockchainProducts, setBlockchainProducts] = useState([]);
   const [error, setError] = useState(null);
-  
+
   const navigate = useNavigate();
 
   // Connect to blockchain and load products
@@ -33,7 +33,7 @@ const ProductsPage = () => {
         // Initialize blockchain connection
         const connected = await web3Service.initWeb3();
         setIsConnected(connected);
-        
+
         if (connected) {
           // Fetch all products from the blockchain
           await loadBlockchainProducts();
@@ -47,10 +47,10 @@ const ProductsPage = () => {
         setIsLoading(false);
       }
     };
-    
+
     initBlockchain();
   }, []);
-  
+
   // Helper to load blockchain products
   const loadBlockchainProducts = async () => {
     try {
@@ -59,21 +59,21 @@ const ProductsPage = () => {
       if (!productContract) {
         throw new Error("Product tracking contract not initialized");
       }
-      
+
       const productCount = await productContract.methods.productCount().call();
       const products = [];
-      
+
       // Fetch each product
       for (let i = 1; i <= productCount; i++) {
         const product = await web3Service.getProduct(i);
-        
+
         // Format product data
         products.push({
           id: formatBigInt(product.id),
           name: product.name,
           manufacturer: product.manufacturer,
           owner: product.owner,
-          origin: "Blockchain", // Default origin for blockchain products
+          origin: product.origin,
           registrationDate: new Date(Number(formatBigInt(product.createTime)) * 1000).toLocaleDateString(),
           status: "Active", // Default status
           createTime: formatBigInt(product.createTime),
@@ -81,7 +81,7 @@ const ProductsPage = () => {
           dataHash: product.dataHash
         });
       }
-      
+
       setBlockchainProducts(products);
     } catch (err) {
       console.error("Error loading blockchain products:", err);
@@ -89,7 +89,7 @@ const ProductsPage = () => {
       setBlockchainProducts([]);
     }
   };
-  
+
   // Helper function to format BigInt values
   const formatBigInt = (value) => {
     if (typeof value === 'bigint') {
@@ -133,17 +133,17 @@ const ProductsPage = () => {
         return false;
       }
     }
-    
+
     // Apply status filter
     if (filters.status && product.status.toLowerCase() !== filters.status.toLowerCase()) {
       return false;
     }
-    
+
     // Apply origin filter
     if (filters.origin && product.origin !== filters.origin) {
       return false;
     }
-    
+
     // Apply date filter
     if (filters.dateFrom) {
       const filterDate = new Date(filters.dateFrom);
@@ -152,7 +152,7 @@ const ProductsPage = () => {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -161,12 +161,12 @@ const ProductsPage = () => {
     const setupEventListeners = () => {
       try {
         const productContract = web3Service.getProductTrackingContract();
-        if (!productContract || !isConnected) return () => {};
-        
+        if (!productContract || !isConnected) return () => { };
+
         // Verify events exist before subscribing
         if (!productContract.events || !productContract.events.ProductCreated) {
           console.error("ProductCreated event not found in contract");
-          return () => {};
+          return () => { };
         }
 
         // Listen for ProductCreated events
@@ -179,7 +179,7 @@ const ProductsPage = () => {
           .on('error', (error) => {
             console.error("Error in ProductCreated event:", error);
           });
-        
+
         // Verify ProductTransferred event exists before subscribing
         let transferredSubscription = null;
         if (productContract.events.ProductTransferred) {
@@ -195,7 +195,7 @@ const ProductsPage = () => {
         } else {
           console.warn("ProductTransferred event not found in contract");
         }
-        
+
         // Return cleanup function
         return () => {
           try {
@@ -211,13 +211,13 @@ const ProductsPage = () => {
         };
       } catch (error) {
         console.error("Failed to set up event listeners:", error);
-        return () => {};
+        return () => { };
       }
     };
-    
-    let cleanup = () => {};
+
+    let cleanup = () => { };
     if (isConnected) {
-      cleanup = setupEventListeners() || (() => {});
+      cleanup = setupEventListeners() || (() => { });
     }
     return cleanup;
   }, [isConnected]);
@@ -232,21 +232,19 @@ const ProductsPage = () => {
                 <h2 className="text-xl font-semibold text-text">Product Management</h2>
                 <p className="text-text/60 text-sm">Register and manage your products on the blockchain</p>
               </div>
-              
+
               {/* Blockchain connection status */}
-              <div className="flex items-center">
-                <div className={`mr-4 px-3 py-1 rounded-full text-sm flex items-center ${
-                  isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                }`}>
+              <div className="flex flex-col sm:flex-row w-full items-center sm:items-center gap-3">
+                <div className={`w-full sm:w-auto px-3 py-1.5 rounded-full text-sm flex items-center justify-center ${isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                  }`}>
                   <FaEthereum className="mr-1" />
                   {isConnected ? 'Blockchain Connected' : 'Not Connected'}
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => navigate('/dashboard/products/new')}
-                  className={`bg-cta hover:bg-cta/90 text-background font-medium rounded-lg px-4 py-2 flex items-center transition-colors ${
-                    !isConnected && 'opacity-50 cursor-not-allowed'
-                  }`}
+                  className={`w-full sm:w-auto bg-cta hover:bg-cta/90 text-background font-medium rounded-lg px-4 py-2.5 flex items-center justify-center transition-colors ${!isConnected && 'opacity-50 cursor-not-allowed'
+                    }`}
                   disabled={!isConnected}
                 >
                   <FaPlus className="mr-2" /> Register New Product
@@ -275,12 +273,12 @@ const ProductsPage = () => {
                 <FaFilter className="mr-2 text-cta" /> Filters
               </button>
             </div>
-            
+
             {filterOpen && (
               <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-text/70 text-sm mb-1">Status</label>
-                  <select 
+                  <select
                     name="status"
                     value={filters.status}
                     onChange={handleFilterChange}
@@ -293,7 +291,7 @@ const ProductsPage = () => {
                 </div>
                 <div>
                   <label className="block text-text/70 text-sm mb-1">Origin</label>
-                  <select 
+                  <select
                     name="origin"
                     value={filters.origin}
                     onChange={handleFilterChange}
@@ -349,12 +347,12 @@ const ProductsPage = () => {
             <>
               {/* Products List with filtered results */}
               <ProductsList products={filteredProducts} searchTerm={searchTerm} filters={filters} />
-              
+
               {/* Show message when no products match filters */}
               {filteredProducts.length === 0 && (
                 <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-8 text-center mt-6">
                   <p className="text-text/60">
-                    {blockchainProducts.length === 0 
+                    {blockchainProducts.length === 0
                       ? "No products found on the blockchain. Register your first product to get started."
                       : "No products match your search criteria"}
                   </p>

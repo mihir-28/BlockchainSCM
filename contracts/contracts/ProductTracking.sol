@@ -6,10 +6,12 @@ contract ProductTracking {
         uint256 id;
         string name;
         string manufacturer;
+        string origin;
+        string description;
         address owner;
         uint256 createTime;
         uint256 updateTime;
-        bytes32 dataHash; // Hash of off-chain data
+        bytes32 dataHash;
     }
     
     mapping(uint256 => Product) public products;
@@ -23,6 +25,8 @@ contract ProductTracking {
     function createProduct(
         string memory _name, 
         string memory _manufacturer, 
+        string memory _origin, 
+        string memory _description,
         bytes32 _dataHash
     ) public returns (uint256) {
         productCount++;
@@ -31,6 +35,8 @@ contract ProductTracking {
             id: productCount,
             name: _name,
             manufacturer: _manufacturer,
+            origin: _origin,
+            description: _description,
             owner: msg.sender,
             createTime: block.timestamp,
             updateTime: block.timestamp,
@@ -63,6 +69,8 @@ contract ProductTracking {
         uint256 id,
         string memory name,
         string memory manufacturer,
+        string memory origin,
+        string memory description,
         address owner,
         uint256 createTime,
         uint256 updateTime,
@@ -73,6 +81,8 @@ contract ProductTracking {
             product.id,
             product.name,
             product.manufacturer,
+            product.origin,
+            product.description,
             product.owner,
             product.createTime,
             product.updateTime,
