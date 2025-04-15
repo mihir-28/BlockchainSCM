@@ -72,7 +72,7 @@ This project is designed to create a blockchain-based supply chain management sy
 
 ### Project Completion
 
-<div align="center">
+<div>
   <table>
     <tr>
       <td><span style="color: #22c55e">■</span> Research & Planning</td>
