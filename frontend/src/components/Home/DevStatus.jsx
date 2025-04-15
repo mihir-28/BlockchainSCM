@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   FaExclamationTriangle, FaCheck, FaSpinner, FaClock,
-  FaRocket, FaCode, FaServer, FaMobileAlt, FaTasks,
+  FaRocket, FaCode, FaCubes, FaServer, FaMobileAlt, FaTasks,
   FaShieldAlt, FaBug, FaChevronDown, FaChevronUp
 } from 'react-icons/fa';
 
@@ -51,7 +51,7 @@ const DevStatus = () => {
       id: 3,
       title: "Frontend Development",
       description: "UI/UX implementation and frontend user flows",
-      status: "completed",
+      status: "in-progress",
       date: "March 2025",
       details: [
         "Core UI component development",
@@ -60,7 +60,8 @@ const DevStatus = () => {
         "Product tracking visualization",
         "Responsive design implementation"
       ],
-      icon: <FaCode className="text-green-500" />
+      // icon: <FaCode className="text-green-500" />
+      icon: <FaSpinner className="text-amber-500 animate-spin-slow" />
     },
     {
       id: 4,
@@ -75,6 +76,7 @@ const DevStatus = () => {
         "Chain data indexing & caching",
         "Gas optimization"
       ],
+      // icon: <FaCubes className="text-green-500" />
       icon: <FaSpinner className="text-amber-500 animate-spin-slow" />
     },
     {
