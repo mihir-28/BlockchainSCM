@@ -85,7 +85,7 @@ This project is designed to create a blockchain-based supply chain management sy
 |---------|--------|--------------|
 | Product Tracking | ✅ Completed | Available |
 | Smart Contracts | ✅ Completed | Available |
-| Transaction Logging | 🔄 In Progress | In Development |
+| Transaction Logging | ✅ Completed | In Development |
 | Access Control | 🔄 In Progress | In Development |
 | QR Code Integration | 🔄 In Progress | In Development |
 | Mobile Wallet Support | 🔜 Planned | Coming Soon |

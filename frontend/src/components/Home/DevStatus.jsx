@@ -130,7 +130,7 @@ const DevStatus = () => {
   const featuresStatus = [
     { name: "Product Tracking", status: "completed", completion: 1.0 },
     { name: "Smart Contracts", status: "completed", completion: 0.5 },
-    { name: "Transaction Logging", status: "in-progress", completion: 0.6 },
+    { name: "Transaction Logging", status: "completed", completion: 1.0 },
     { name: "Access Control", status: "in-progress", completion: 0.2 },
     { name: "QR Code Integration", status: "in-progress", completion: 0.5 },
     { name: "Mobile Wallet Support", status: "planned", completion: 0.0 },
