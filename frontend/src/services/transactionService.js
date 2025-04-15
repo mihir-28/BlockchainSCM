@@ -371,7 +371,29 @@ export const getTransactionDetails = async (txHash) => {
   }
 };
 
+/**
+ * Fetches recent transactions from the blockchain
+ * @param {number} limit - Maximum number of transactions to return
+ * @returns {Promise<Array>} Array of recent transaction objects
+ */
+export const fetchRecentTransactions = async (limit = 5) => {
+  try {
+    // Use the existing fetchTransactions function but add a limit
+    const allTransactions = await fetchTransactions();
+    
+    // Sort by timestamp (newest first) and limit the results
+    return allTransactions
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, limit);
+  } catch (error) {
+    console.error("Error fetching recent transactions:", error);
+    throw error;
+  }
+};
+
+// Update the default export
 export default {
   fetchTransactions,
-  getTransactionDetails
+  getTransactionDetails,
+  fetchRecentTransactions
 };

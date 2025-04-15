@@ -1,7 +1,10 @@
 import React from 'react';
 import { FaCheckCircle, FaExclamationTriangle, FaClock } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const TransactionTable = ({ transactions }) => {
+  const navigate = useNavigate();
+  
   // Function to render status indicator
   const renderStatus = (status) => {
     switch (status.toLowerCase()) {
@@ -31,16 +34,35 @@ const TransactionTable = ({ transactions }) => {
     }
   };
 
+  // Function to format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { 
+      month: 'short',
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit'
+    });
+  };
+
+  // Navigate to transaction details page
+  const handleViewTransaction = (txId) => {
+    navigate(`/dashboard/transactions?txid=${txId}`);
+  };
+
   return (
     <div className="overflow-x-auto bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl shadow-sm">
       <table className="min-w-full">
         <thead>
           <tr className="border-b border-cta/10">
             <th className="pl-6 pr-2 py-3 text-left text-xs font-medium text-text/60 uppercase tracking-wider">
-              ID
+              Type
             </th>
             <th className="px-2 py-3 text-left text-xs font-medium text-text/60 uppercase tracking-wider">
-              Type
+              Name
+            </th>
+            <th className="px-2 py-3 text-left text-xs font-medium text-text/60 uppercase tracking-wider">
+              Description
             </th>
             <th className="px-2 py-3 text-left text-xs font-medium text-text/60 uppercase tracking-wider">
               Status
@@ -48,45 +70,50 @@ const TransactionTable = ({ transactions }) => {
             <th className="px-2 py-3 text-left text-xs font-medium text-text/60 uppercase tracking-wider">
               Timestamp
             </th>
-            <th className="px-2 py-3 text-left text-xs font-medium text-text/60 uppercase tracking-wider">
-              Hash
-            </th>
-            <th className="pl-2 pr-6 py-3 text-right text-xs font-medium text-text/60 uppercase tracking-wider">
-              Actions
+            <th className="pl-6 pr-2 py-3 text-left text-xs font-medium text-text/60 uppercase tracking-wider">
+              Block
             </th>
           </tr>
         </thead>
         <tbody>
-          {transactions.map((transaction, index) => (
-            <tr 
-              key={transaction.id} 
-              className={`
-                ${index % 2 === 0 ? 'bg-background/10' : 'bg-transparent'}
-                ${index === transactions.length - 1 ? '' : 'border-b border-cta/5'}
-              `}
-            >
-              <td className="pl-6 pr-2 py-3 whitespace-nowrap text-sm text-text">
-                {transaction.id}
-              </td>
-              <td className="px-2 py-3 whitespace-nowrap text-sm text-text">
-                {transaction.type}
-              </td>
-              <td className="px-2 py-3 whitespace-nowrap text-sm">
-                {renderStatus(transaction.status)}
-              </td>
-              <td className="px-2 py-3 whitespace-nowrap text-sm text-text/80">
-                {transaction.timestamp}
-              </td>
-              <td className="px-2 py-3 whitespace-nowrap text-sm text-cta/80">
-                {transaction.hash}
-              </td>
-              <td className="pl-2 pr-6 py-3 whitespace-nowrap text-right text-sm font-medium">
-                <button className="text-cta hover:text-cta-dark">
-                  View
-                </button>
+          {transactions.length === 0 ? (
+            <tr>
+              <td colSpan="6" className="px-6 py-8 text-center text-text/60">
+                No transactions found
               </td>
             </tr>
-          ))}
+          ) : (
+            transactions.map((transaction, index) => (
+              <tr 
+                key={transaction.id} 
+                className={`
+                  ${index % 2 === 0 ? 'bg-background/10' : 'bg-transparent'}
+                  ${index === transactions.length - 1 ? '' : 'border-b border-cta/5'}
+                  hover:bg-cta/5 cursor-pointer transition-colors
+                `}
+                onClick={() => handleViewTransaction(transaction.id)}
+              >
+                <td className="pl-6 pr-2 py-3 whitespace-nowrap text-sm text-text capitalize">
+                  {transaction.type}
+                </td>
+                <td className="px-2 py-3 text-sm text-text font-medium whitespace-nowrap">
+                  {transaction.data.name}
+                </td>
+                <td className="px-2 py-3 text-sm text-text line-clamp-3">
+                  {transaction.description}
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm">
+                  {renderStatus(transaction.status)}
+                </td>
+                <td className="px-2 py-3 whitespace-nowrap text-sm text-text/80">
+                  {formatDate(transaction.timestamp)}
+                </td>
+                <td className="pl-6 pr-2 py-3 whitespace-nowrap text-sm text-cta/80">
+                  {transaction.blockNumber}
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
