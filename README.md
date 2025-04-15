@@ -72,26 +72,12 @@ This project is designed to create a blockchain-based supply chain management sy
 
 ### Project Completion
 
-<div>
-  <table>
-    <tr>
-      <td><span style="color: #22c55e">■</span> Research & Planning</td>
-      <td><strong>✅ Completed</strong></td>
-    </tr>
-    <tr>
-      <td><span style="color: #f59e0b">■</span> Development</td>
-      <td><strong>🔄 In Progress</strong></td>
-    </tr>
-    <tr>
-      <td><span style="color: #3b82f6">■</span> Testing</td>
-      <td><strong>🔜 Coming Soon</strong></td>
-    </tr>
-    <tr>
-      <td><span style="color: #8b5cf6">■</span> Production</td>
-      <td><strong>🔜 Coming Soon</strong></td>
-    </tr>
-  </table>
-</div>
+| Phase | Status |
+|-------|--------|
+| 🟢 Research & Planning | ✅ Completed |
+| 🟠 Development | 🔄 In Progress |
+| 🔵 Testing | 🔜 Coming Soon |
+| 🟣 Production | 🔜 Coming Soon |
 
 ### Features Status
 
