@@ -195,7 +195,7 @@ const ProductDetails = () => {
       };
 
       // Set source for logo (use the same path as in the QRCodeSVG component)
-      logo.src = "/icon-black.png";
+      logo.src = "/icon-black.jpg";
     };
 
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
@@ -411,7 +411,7 @@ const ProductDetails = () => {
                   level="H"
                   includeMargin={true}
                   imageSettings={{
-                    src: "/icon-black.png",
+                    src: "/icon-black.jpg",
                     x: undefined,
                     y: undefined,
                     height: 40,
@@ -492,7 +492,7 @@ const ProductDetails = () => {
                     level="H"
                     includeMargin={true}
                     imageSettings={{
-                      src: "/icon-black.png",
+                      src: "/icon-black.jpg",
                       height: 36,
                       width: 36,
                       excavate: true,

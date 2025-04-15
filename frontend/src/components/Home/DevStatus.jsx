@@ -460,7 +460,7 @@ const DevStatus = () => {
 
         {/* Call to Action */}
         <div className="text-center mt-10 md:mt-16">
-          <a href="https://github.com/yourusername/blockchainsupplychain" target="_blank" rel="noopener noreferrer"
+          <a href="https://github.com/mihir-28/nexchain" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-cta hover:bg-cta/90 text-background font-medium rounded-lg transition-all transform hover:scale-105 text-sm sm:text-base">
             <FaRocket className="mr-2" />
             Join our development journey
