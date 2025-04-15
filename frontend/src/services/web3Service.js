@@ -8,6 +8,8 @@ let web3Instance;
 let supplyChainAgreement;
 let productTracking;
 let accessControl;
+let productContract;
+let shipmentContract;
 
 // Get contract addresses from the addresses.json file
 const CONTRACT_ADDRESSES = {
@@ -279,6 +281,69 @@ export const getAccessControlContract = () => accessControl;
 // Get the web3 instance
 export const getWeb3 = () => web3Instance;
 
+/**
+ * Gets the product contract instance
+ * @returns {Object} The product contract instance
+ */
+const getProductContract = () => {
+  if (!web3Instance) {
+    console.error("Web3 not initialized");
+    return null;
+  }
+  
+  if (!productContract) {
+    try {
+      // Update this with your actual contract ABI and address
+      const contractABI = ProductTrackingABI.abi;
+      const contractAddress = CONTRACT_ADDRESSES.productTracking;
+      
+      productContract = new web3Instance.eth.Contract(
+        contractABI,
+        contractAddress
+      );
+    } catch (error) {
+      console.error("Error initializing product contract:", error);
+      return null;
+    }
+  }
+  
+  return productContract;
+};
+
+/**
+ * Gets the shipment contract instance if available
+ * @returns {Object} The shipment contract instance
+ */
+const getShipmentContract = () => {
+  if (!web3Instance) {
+    console.error("Web3 not initialized");
+    return null;
+  }
+  
+  if (!shipmentContract) {
+    try {
+      // Update this with your actual contract ABI and address
+      // If you don't have a separate shipment contract yet, this might throw an error
+      const contractABI = SupplyChainAgreementABI.abi;
+      const contractAddress = CONTRACT_ADDRESSES.supplyChain;
+      
+      if (!contractABI || !contractAddress) {
+        throw new Error("Shipment contract data not available");
+      }
+      
+      shipmentContract = new web3Instance.eth.Contract(
+        contractABI,
+        contractAddress
+      );
+    } catch (error) {
+      console.warn("Shipment contract not available:", error);
+      return null;
+    }
+  }
+  
+  return shipmentContract;
+};
+
 // Export all functions
 export default {
   initWeb3,
@@ -297,5 +362,7 @@ export default {
   getSupplyChainContract,
   getProductTrackingContract,
   getAccessControlContract,
-  getWeb3
+  getWeb3,
+  getProductContract,
+  getShipmentContract
 };

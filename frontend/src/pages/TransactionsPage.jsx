@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaExchangeAlt, FaSearch, FaFilter, FaSpinner, FaCheck, 
+import {
+  FaExchangeAlt, FaSearch, FaFilter, FaSpinner, FaCheck,
   FaTimes, FaClock, FaFileDownload, FaHistory, FaChartBar,
-  FaBoxOpen, FaTruckMoving, FaFileContract, FaStore, FaUserCheck
+  FaBoxOpen, FaTruckMoving, FaFileContract, FaStore, FaUserCheck,
+  FaEthereum
 } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { CSVLink } from 'react-csv';
+import transactionService from '../services/transactionService';
+import web3Service from '../services/web3Service';
 
 const TransactionsPage = () => {
   // STATE HOOKS
@@ -20,17 +24,97 @@ const TransactionsPage = () => {
   });
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [view, setView] = useState('list'); // 'list' or 'grid'
+  const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [blockExplorerUrl, setBlockExplorerUrl] = useState('https://etherscan.io');
 
   // Load transaction data
   useEffect(() => {
-    // In a real application, this would be an API call
-    import('../data/transactionData').then(module => {
-      const data = module.default;
+    const initBlockchain = async () => {
+      try {
+        // Connect to blockchain
+        const connected = await web3Service.initWeb3();
+        setIsConnected(connected);
+
+        if (!connected) {
+          throw new Error("Failed to connect to blockchain. Please check your wallet connection.");
+        }
+
+        // Get block explorer URL based on network
+        const networkId = await web3Service.getWeb3().eth.net.getId();
+        switch (networkId) {
+          case 1:
+            setBlockExplorerUrl('https://etherscan.io');
+            break;
+          case 3:
+            setBlockExplorerUrl('https://ropsten.etherscan.io');
+            break;
+          case 4:
+            setBlockExplorerUrl('https://rinkeby.etherscan.io');
+            break;
+          case 5:
+            setBlockExplorerUrl('https://goerli.etherscan.io');
+            break;
+          case 42:
+            setBlockExplorerUrl('https://kovan.etherscan.io');
+            break;
+          case 137:
+            setBlockExplorerUrl('https://polygonscan.com');
+            break;
+          case 80001:
+            setBlockExplorerUrl('https://mumbai.polygonscan.com');
+            break;
+          case 1337:
+          case 5777:
+            setBlockExplorerUrl('http://localhost:8545'); // Ganache
+            break;
+          default:
+            setBlockExplorerUrl('https://etherscan.io');
+        }
+
+        // Fetch transactions
+        loadTransactions();
+      } catch (err) {
+        console.error("Blockchain error:", err);
+        setError(err.message);
+        setIsLoading(false);
+
+        // Fall back to mock data during development
+        import('../data/transactionData').then(module => {
+          const data = module.default;
+          setTransactions(data);
+          setFilteredTransactions(data);
+          setIsLoading(false);
+        });
+      }
+    };
+
+    initBlockchain();
+  }, []);
+
+  // Load transactions with current filters
+  const loadTransactions = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const data = await transactionService.fetchTransactions(filters);
       setTransactions(data);
       setFilteredTransactions(data);
+    } catch (err) {
+      console.error("Error loading transactions:", err);
+      setError(`Failed to load transactions: ${err.message}`);
+
+      // Fall back to mock data during development
+      import('../data/transactionData').then(module => {
+        const mockData = module.default;
+        setTransactions(mockData);
+        setFilteredTransactions(mockData);
+      });
+    } finally {
       setIsLoading(false);
-    });
-  }, []);
+    }
+  };
 
   // Apply filters and search
   useEffect(() => {
@@ -59,7 +143,7 @@ const TransactionsPage = () => {
     if (filters.timeframe !== 'all') {
       const now = new Date();
       let timeLimit;
-      
+
       switch (filters.timeframe) {
         case '24h':
           timeLimit = new Date(now.setHours(now.getHours() - 24));
@@ -111,8 +195,26 @@ const TransactionsPage = () => {
   };
 
   // Handle transaction click
-  const handleTransactionClick = (tx) => {
+  const handleTransactionClick = async (tx) => {
+    // Set selected transaction immediately with current data
     setSelectedTransaction(tx);
+
+    // For real blockchain transactions, fetch more details but preserve description
+    if (isConnected && tx.id) {
+      try {
+        const details = await transactionService.getTransactionDetails(tx.id);
+
+        // Preserve the original description from the transaction list
+        // This ensures we show the same description in both places
+        setSelectedTransaction({
+          ...details,
+          description: tx.description || details.description
+        });
+      } catch (err) {
+        console.error("Error fetching transaction details:", err);
+        // Keep the existing transaction data if there's an error
+      }
+    }
   };
 
   // Close transaction details
@@ -140,10 +242,20 @@ const TransactionsPage = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Export transactions
-  const exportTransactions = () => {
-    // In a real app, this would generate a CSV or PDF
-    alert('Transactions would be exported here in a real application');
+  // Prepare CSV data for export
+  const prepareExportData = () => {
+    return filteredTransactions.map(tx => ({
+      ID: tx.id,
+      Type: tx.type,
+      Description: tx.description,
+      User: tx.user,
+      UserRole: tx.userRole,
+      Timestamp: new Date(tx.timestamp).toLocaleString(),
+      Status: tx.status,
+      BlockNumber: tx.blockNumber,
+      GasUsed: tx.gasUsed,
+      WalletAddress: tx.walletAddress
+    }));
   };
 
   return (
@@ -158,22 +270,33 @@ const TransactionsPage = () => {
             View and verify all transactions recorded on the blockchain
           </p>
         </div>
-        
+
+        {/* Connection status indicator */}
+        <div className={`px-3 py-1.5 rounded-full text-sm flex items-center ${isConnected
+          ? 'bg-green-500/20 text-green-400'
+          : 'bg-red-500/20 text-red-400'
+          }`}>
+          <FaEthereum className="mr-1.5" />
+          {isConnected ? 'Blockchain Connected' : 'Not Connected'}
+        </div>
+
         <div className="flex items-center space-x-3">
-          <button 
-            onClick={exportTransactions}
+          <CSVLink
+            data={prepareExportData()}
+            filename={"blockchain-transactions.csv"}
             className="bg-background/50 border border-cta/10 rounded-lg px-4 py-2 text-text/70 hover:text-text hover:border-cta/20 flex items-center transition-all"
           >
             <FaFileDownload className="mr-2 text-cta" /> Export
-          </button>
+          </CSVLink>
+
           <div className="flex bg-background/50 border border-cta/10 rounded-lg overflow-hidden">
-            <button 
+            <button
               onClick={() => setView('list')}
               className={`px-3 py-2 ${view === 'list' ? 'bg-cta/20 text-cta' : 'text-text/70 hover:text-text'} transition-all`}
             >
               <FaHistory />
             </button>
-            <button 
+            <button
               onClick={() => setView('grid')}
               className={`px-3 py-2 ${view === 'grid' ? 'bg-cta/20 text-cta' : 'text-text/70 hover:text-text'} transition-all`}
             >
@@ -270,7 +393,10 @@ const TransactionsPage = () => {
                       Reset All
                     </button>
                     <button
-                      onClick={() => setIsFilterMenuOpen(false)}
+                      onClick={() => {
+                        setIsFilterMenuOpen(false);
+                        loadTransactions();
+                      }}
                       className="bg-cta px-3 py-1 rounded text-sm text-white"
                     >
                       Apply
@@ -290,7 +416,11 @@ const TransactionsPage = () => {
                 Type: {filters.type}
                 <button
                   className="ml-2 hover:text-cta/70"
-                  onClick={() => setFilters({ ...filters, type: 'all' })}
+                  onClick={() => {
+                    const newFilters = { ...filters, type: 'all' };
+                    setFilters(newFilters);
+                    loadTransactions(newFilters);
+                  }}
                 >
                   ×
                 </button>
@@ -301,7 +431,11 @@ const TransactionsPage = () => {
                 Status: {filters.status}
                 <button
                   className="ml-2 hover:text-cta/70"
-                  onClick={() => setFilters({ ...filters, status: 'all' })}
+                  onClick={() => {
+                    const newFilters = { ...filters, status: 'all' };
+                    setFilters(newFilters);
+                    loadTransactions(newFilters);
+                  }}
                 >
                   ×
                 </button>
@@ -316,7 +450,11 @@ const TransactionsPage = () => {
                 }
                 <button
                   className="ml-2 hover:text-cta/70"
-                  onClick={() => setFilters({ ...filters, timeframe: 'all' })}
+                  onClick={() => {
+                    const newFilters = { ...filters, timeframe: 'all' };
+                    setFilters(newFilters);
+                    loadTransactions(newFilters);
+                  }}
                 >
                   ×
                 </button>
@@ -324,7 +462,10 @@ const TransactionsPage = () => {
             )}
             <button
               className="text-cta/70 hover:text-cta text-xs underline"
-              onClick={resetFilters}
+              onClick={() => {
+                resetFilters();
+                loadTransactions({ type: 'all', status: 'all', timeframe: 'all' });
+              }}
             >
               Clear all
             </button>
@@ -348,8 +489,20 @@ const TransactionsPage = () => {
           <div className="flex justify-center py-20">
             <div className="flex flex-col items-center">
               <FaSpinner className="animate-spin text-cta text-3xl mb-4" />
-              <p className="text-text/70">Loading transactions...</p>
+              <p className="text-text/70">Loading blockchain transactions...</p>
             </div>
+          </div>
+        ) : error ? (
+          <div className="bg-panel/30 border border-red-500/20 rounded-lg p-8 text-center">
+            <FaTimes className="mx-auto text-4xl text-red-500 mb-4" />
+            <h3 className="text-xl font-display font-medium text-text mb-2">Error Loading Transactions</h3>
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
+              onClick={() => loadTransactions(filters)}
+              className="px-4 py-2 bg-cta/10 hover:bg-cta/20 text-cta rounded-md transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         ) : filteredTransactions.length === 0 ? (
           <div className="bg-panel/30 border border-cta/10 rounded-lg p-8 text-center">
@@ -357,7 +510,10 @@ const TransactionsPage = () => {
             <h3 className="text-xl font-display font-medium text-text mb-2">No transactions found</h3>
             <p className="text-text/60 mb-4">Try adjusting your search criteria or filters</p>
             <button
-              onClick={resetFilters}
+              onClick={() => {
+                resetFilters();
+                loadTransactions({ type: 'all', status: 'all', timeframe: 'all' });
+              }}
               className="px-4 py-2 bg-cta/10 hover:bg-cta/20 text-cta rounded-md transition-colors"
             >
               Reset all filters
@@ -406,7 +562,9 @@ const TransactionsPage = () => {
                               #{tx.id.substring(0, 8)}...
                             </div>
                             <div className="text-xs text-text/50 capitalize">
-                              {tx.type}
+                              {tx.type === 'product' && tx.data && tx.data.name
+                                ? tx.data.name
+                                : tx.type}
                             </div>
                           </div>
                         </div>
@@ -419,7 +577,9 @@ const TransactionsPage = () => {
                           <div className="w-6 h-6 rounded-full bg-panel/70 flex items-center justify-center text-xs mr-2">
                             {tx.user.charAt(0).toUpperCase()}
                           </div>
-                          {tx.user}
+                          <div className="max-w-[120px] truncate">
+                            {tx.user}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -463,7 +623,11 @@ const TransactionsPage = () => {
                       {getTransactionIcon(tx.type)}
                     </div>
                     <div>
-                      <div className="font-medium text-text capitalize">{tx.type}</div>
+                      <div className="font-medium text-text capitalize">
+                        {tx.type === 'product' && tx.data && tx.data.name
+                          ? tx.data.name
+                          : tx.type}
+                      </div>
                       <div className="text-xs text-text/50">#{tx.id.substring(0, 8)}...</div>
                     </div>
                   </div>
@@ -476,7 +640,7 @@ const TransactionsPage = () => {
                       <div className="w-5 h-5 rounded-full bg-panel/70 flex items-center justify-center mr-1 text-[10px]">
                         {tx.user.charAt(0).toUpperCase()}
                       </div>
-                      <span>{tx.user}</span>
+                      <span className="max-w-[120px] truncate">{tx.user}</span>
                     </div>
                     <div>{formatDate(tx.timestamp)}</div>
                   </div>
@@ -529,6 +693,13 @@ const TransactionsPage = () => {
                       <div className="text-text capitalize">{selectedTransaction.type}</div>
                     </div>
 
+                    {selectedTransaction.type === 'product' && selectedTransaction.data && selectedTransaction.data.name && (
+                      <div>
+                        <div className="text-xs text-text/60 mb-1">Product Name</div>
+                        <div className="text-text font-medium">{selectedTransaction.data.name}</div>
+                      </div>
+                    )}
+
                     <div>
                       <div className="text-xs text-text/60 mb-1">Description</div>
                       <div className="text-text">{selectedTransaction.description}</div>
@@ -561,7 +732,9 @@ const TransactionsPage = () => {
                         <div className="w-6 h-6 rounded-full bg-panel/70 flex items-center justify-center text-xs mr-2">
                           {selectedTransaction.user.charAt(0).toUpperCase()}
                         </div>
-                        {selectedTransaction.user}
+                        <div className="truncate">
+                          {selectedTransaction.user}
+                        </div>
                       </div>
                     </div>
 
@@ -626,12 +799,12 @@ const TransactionsPage = () => {
                 </button>
 
                 <a
-                  href={`https://etherscan.io/tx/${selectedTransaction.id}`}
+                  href={`${blockExplorerUrl}/tx/${selectedTransaction.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-2 bg-cta/20 hover:bg-cta/30 text-cta rounded flex items-center transition-colors"
                 >
-                  View on Explorer
+                  View on Explorer <FaExchangeAlt className="ml-2" />
                 </a>
               </div>
             </div>

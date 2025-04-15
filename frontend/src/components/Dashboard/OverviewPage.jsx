@@ -5,9 +5,9 @@ import { useOutletContext } from 'react-router-dom';
 import MetricCard from './MetricCard';
 import LineChart from './LineChart';
 import PieChart from './PieChart';
-import TransactionTable from './TransactionTable';
 import WelcomeCard from './WelcomeCard';
 import QuickActionCard from './QuickActionCard';
+import TransactionTable from './TransactionTable';
 
 // Sample data for charts
 const transactionData = {
@@ -22,7 +22,7 @@ const distributionData = {
 
 const OverviewPage = ({ kpiData, recentTransactions }) => {
   const { currentUser } = useOutletContext();
-  
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -84,6 +84,7 @@ const OverviewPage = ({ kpiData, recentTransactions }) => {
         </div>
       </div>
       
+     
       {/* Recent Transactions */}
       <div>
         <div className="flex justify-between items-center mb-4">
