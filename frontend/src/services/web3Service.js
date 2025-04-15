@@ -4,48 +4,70 @@ import ProductTrackingABI from '../contracts/ProductTracking.json';
 import AccessControlABI from '../contracts/AccessControl.json';
 import contractAddresses from '../contracts/addresses.json';
 
-let web3Instance;
+let web3Instance = null;
+let networkId = null;
+let accounts = [];
+
 let supplyChainAgreement;
 let productTracking;
 let accessControl;
 let productContract;
 let shipmentContract;
 
-// Get contract addresses from the addresses.json file
+// Contract addresses should be defined based on your deployment
 const CONTRACT_ADDRESSES = {
   supplyChain: contractAddresses.SupplyChainAgreement,
   productTracking: contractAddresses.ProductTracking,
   accessControl: contractAddresses.AccessControl,
 };
 
+// Initialize Web3
 export const initWeb3 = async () => {
-  // Check if we've already initialized web3
-  if (web3Instance) {
-    return true;
-  }
-  
-  // Check if MetaMask is installed
-  if (window.ethereum) {
-    try {
-      // Request account access
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      web3Instance = new Web3(window.ethereum);
-
-      // Initialize contract instances
-      initContracts();
-
+  try {
+    // Check if Web3 is already initialized
+    if (web3Instance) {
       return true;
-    } catch (error) {
-      console.error('User denied account access', error);
+    }
+    
+    // Modern dapp browsers
+    if (window.ethereum) {
+      web3Instance = new Web3(window.ethereum);
+      try {
+        // Request account access
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        // Get network ID
+        networkId = await web3Instance.eth.net.getId();
+        console.log("Connected to network ID:", networkId);
+        
+        // Get accounts
+        accounts = await web3Instance.eth.getAccounts();
+        
+        // Initialize contract instances
+        initContracts();
+
+        return true;
+      } catch (error) {
+        console.error("User denied account access:", error);
+        return false;
+      }
+    }
+    // Legacy dapp browsers
+    else if (window.web3) {
+      web3Instance = new Web3(window.web3.currentProvider);
+      networkId = await web3Instance.eth.net.getId();
+      accounts = await web3Instance.eth.getAccounts();
+      initContracts();
+      return true;
+    }
+    // Non-dapp browsers
+    else {
+      console.log('Non-Ethereum browser detected. Consider using MetaMask!');
       return false;
     }
-  }
-  // If no injected web3 instance is detected, fall back to Ganache
-  else {
-    web3Instance = new Web3('http://localhost:7545');
-    initContracts();
-    console.log('Using local web3 provider');
-    return true;
+  } catch (error) {
+    console.error("Error initializing Web3:", error);
+    return false;
   }
 };
 
@@ -102,10 +124,24 @@ const initContracts = () => {
   }
 };
 
+// Get Web3 instance
+export const getWeb3 = () => {
+  return web3Instance;
+};
+
 // Get current account
 export const getCurrentAccount = async () => {
-  const accounts = await web3Instance.eth.getAccounts();
-  return accounts[0];
+  try {
+    if (!web3Instance) {
+      return null;
+    }
+    
+    const accts = await web3Instance.eth.getAccounts();
+    return accts[0];
+  } catch (error) {
+    console.error("Error getting accounts:", error);
+    return null;
+  }
 };
 
 // Supply Chain Agreement methods
@@ -169,15 +205,15 @@ export const getShipment = async (shipmentId) => {
 };
 
 // Product Tracking methods
-export const createProduct = async (name, manufacturer, origin, description, dataHash) => {
+export const createProduct = async (manufacturer, origin, dataHash) => {
   try {
     const productContract = getProductTrackingContract();
     const accounts = await web3Instance.eth.getAccounts();
     
     const result = await productContract.methods
-      .createProduct(name, manufacturer, origin, description, dataHash)
+      .createProduct(manufacturer, origin, dataHash)
       .send({ from: accounts[0] });
-      
+    
     return result;
   } catch (error) {
     console.error("Error creating product:", error);
@@ -185,25 +221,48 @@ export const createProduct = async (name, manufacturer, origin, description, dat
   }
 };
 
-export const transferProduct = async (to, productId) => {
+export const transferProduct = async (productId, to) => {
   try {
-    const account = await getCurrentAccount();
-    return await productTracking.methods
-      .transferProduct(to, productId)
-      .send({ from: account });
+    const productContract = getProductTrackingContract();
+    const accounts = await web3Instance.eth.getAccounts();
+    
+    const result = await productContract.methods
+      .transferProduct(productId, to)
+      .send({ from: accounts[0] });
+    
+    return result;
   } catch (error) {
-    console.error('Error transferring product:', error);
+    console.error("Error transferring product:", error);
+    throw error;
+  }
+};
+
+export const updateProductData = async (productId, newDataHash) => {
+  try {
+    const productContract = getProductTrackingContract();
+    const accounts = await web3Instance.eth.getAccounts();
+    
+    const result = await productContract.methods
+      .updateProductData(productId, newDataHash)
+      .send({ from: accounts[0] });
+    
+    return result;
+  } catch (error) {
+    console.error("Error updating product data:", error);
     throw error;
   }
 };
 
 export const getProduct = async (productId) => {
   try {
-    return await productTracking.methods
-      .getProduct(productId)
-      .call();
+    const productContract = getProductTrackingContract();
+    if (!productContract) {
+      throw new Error('Contract is not available');
+    }
+    
+    return await productContract.methods.getProduct(productId).call();
   } catch (error) {
-    console.error('Error getting product:', error);
+    console.error("Error getting product:", error);
     throw error;
   }
 };
@@ -262,24 +321,43 @@ export const checkRole = async (account, role) => {
 // Helper functions
 export const getSupplyChainContract = () => supplyChainAgreement;
 
-// Add these logging features to help debug
+// Fix for the contract initialization function
 export const getProductTrackingContract = () => {
-  if (!productTracking) {
-    console.error("ProductTracking contract not initialized");
+  try {
+    if (!web3Instance) {
+      console.warn("Web3 is not initialized");
+      return null;
+    }
+    
+    // Check if ABI is properly imported and structured
+    if (!ProductTrackingABI) {
+      console.error("ProductTracking ABI is not defined");
+      return null;
+    }
+    
+    // If ProductTrackingABI is a compiled contract JSON (from truffle/hardhat),
+    // we need to extract the actual ABI
+    const abi = ProductTrackingABI.abi ? ProductTrackingABI.abi : ProductTrackingABI;
+    
+    // Make sure we have a contract address
+    if (!CONTRACT_ADDRESSES.productTracking) {
+      console.error("ProductTracking address is not defined");
+      return null;
+    }
+    
+    // Now create the contract instance
+    return new web3Instance.eth.Contract(
+      abi,
+      CONTRACT_ADDRESSES.productTracking
+    );
+  } catch (error) {
+    console.error("Error creating contract instance:", error);
     return null;
   }
-  
-  // Log available events to help debug
-  const events = Object.keys(productTracking.events || {});
-  console.log("Available events in ProductTracking contract:", events);
-  
-  return productTracking;
 };
 
 export const getAccessControlContract = () => accessControl;
 
-// Get the web3 instance
-export const getWeb3 = () => web3Instance;
 
 /**
  * Gets the product contract instance
@@ -347,6 +425,7 @@ const getShipmentContract = () => {
 // Export all functions
 export default {
   initWeb3,
+  getWeb3,
   getCurrentAccount,
   createShipment,
   startShipment,
@@ -355,6 +434,7 @@ export default {
   getShipment,
   createProduct,
   transferProduct,
+  updateProductData,
   getProduct,
   getAllProducts,
   grantRole,
@@ -362,7 +442,6 @@ export default {
   getSupplyChainContract,
   getProductTrackingContract,
   getAccessControlContract,
-  getWeb3,
   getProductContract,
   getShipmentContract
 };

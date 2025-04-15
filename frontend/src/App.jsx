@@ -16,7 +16,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import OverviewPage from "./components/Dashboard/OverviewPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetails from "./components/Products/ProductDetails";
-import VerifyProductPage from './pages/VerifyProductPage';
+import ProductVerification from './components/Products/ProductVerification';
 import TransactionsPage from "./pages/TransactionsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -95,7 +95,7 @@ const AppContent = () => {
             <Route path="privacy-policy" element={<PolicyPage />} />
             <Route path="support" element={<SupportPage />} />
             <Route path="faq" element={<FAQPage />} />
-            <Route path="verify" element={<VerifyProductPage />} />
+            <Route path="/verify/:productId" element={<ProductVerification />} />
           </Route>
 
           {/* Dashboard routes */}

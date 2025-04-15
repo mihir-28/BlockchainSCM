@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaQrcode, FaDownload, FaHistory, FaCheckCircle, FaTimesCircle, FaExternalLinkAlt, FaSpinner } from 'react-icons/fa';
-import { QRCodeSVG } from 'qrcode.react'; // Changed to use qrcode.react
-import web3Service from '../../services/web3Service';
-
-// Helper function for formatting
-const formatBigInt = (value) => {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  return value;
-};
+import * as productService from '../../services/productService';
+import web3Service from '../../services/web3Service'; // Add this import
+import {
+  FaCheck, FaTimes, FaExchangeAlt, FaEdit, FaHistory, FaQrcode,
+  FaArrowLeft, FaDownload, FaCheckCircle, FaTimesCircle,
+  FaExternalLinkAlt, FaSpinner
+} from 'react-icons/fa';
+import UpdateProduct from './UpdateProduct';
+import { QRCodeSVG } from 'qrcode.react';
 
 const shortenAddress = (address) => {
   if (!address) return '';
@@ -23,134 +21,45 @@ const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [transferTarget, setTransferTarget] = useState('');
   const [isTransferring, setIsTransferring] = useState(false);
-  const [accountAddress, setAccountAddress] = useState('');
-  const [showQrModal, setShowQrModal] = useState(false);
+
+  // Block explorer URL
+  const blockExplorerUrl = 'https://etherscan.io';
 
   // QR code data
   const [qrCodeData, setQrCodeData] = useState('');
 
-  // Ethereum block explorer URL
-  const blockExplorerUrl = 'https://etherscan.io'; // Change if using a different network
-
-  useEffect(() => {
-    const fetchProductDetails = async () => {
-      setLoading(true);
-      try {
-        // Initialize blockchain connection
-        await web3Service.initWeb3();
-
-        // Get current account
-        const account = await web3Service.getCurrentAccount();
-        setAccountAddress(account);
-
-        // Fetch product from blockchain
-        const productData = await web3Service.getProduct(productId);
-
-        if (productData) {
-          // Format blockchain data
-          const formattedProduct = {
-            id: formatBigInt(productData.id),
-            name: productData.name,
-            manufacturer: productData.manufacturer,
-            origin: productData.origin,
-            owner: productData.owner,
-            createTime: formatBigInt(productData.createTime),
-            updateTime: formatBigInt(productData.updateTime),
-            dataHash: productData.dataHash,
-            description: productData.description || 'No description available',
-
-            // Additional UI fields
-            serialNumber: `SN-${formatBigInt(productData.id)}-${Math.floor(Math.random() * 90000 + 10000)}`,
-            dateAdded: new Date(Number(productData.createTime) * 1000).toLocaleDateString(),
-            status: 'Active',
-
-            // Blockchain info
-            blockchainInfo: {
-              transactionHash: '', // Would need to fetch from events
-              blockNumber: '', // Would need to fetch from events
-              timestamp: new Date(Number(productData.createTime) * 1000).toLocaleString()
-            },
-
-            // Product history - Basic entry for now
-            history: [
-              {
-                event: 'Product Registered',
-                date: new Date(Number(productData.createTime) * 1000).toLocaleString(),
-                by: productData.manufacturer
-              }
-            ]
-          };
-
-          setProduct(formattedProduct);
-
-          // Generate QR code data
-          // Create a verification URL that could be used to verify this product
-          const verificationData = {
-            id: formattedProduct.id,
-            name: formattedProduct.name,
-            manufacturer: formattedProduct.manufacturer,
-            origin: formattedProduct.origin,
-            createTime: formattedProduct.createTime,
-            dataHash: formattedProduct.dataHash,
-          };
-
-          // Base URL of your verification page - update with your actual URL
-          const baseVerificationUrl = `${window.location.origin}/verify`;
-          const qrData = `${baseVerificationUrl}?id=${formattedProduct.id}&hash=${formattedProduct.dataHash}`;
-          setQrCodeData(qrData);
-        } else {
-          setError('Product not found on blockchain');
-        }
-      } catch (err) {
-        console.error('Error fetching blockchain product:', err);
-        setError('Failed to fetch product details from blockchain');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProductDetails();
-  }, [productId]);
-
-  // Handle product ownership transfer
-  const handleTransferOwnership = async () => {
-    if (!transferTarget.trim() || !web3Service.getWeb3().utils.isAddress(transferTarget)) {
-      alert('Please enter a valid Ethereum address');
-      return;
-    }
-
-    setIsTransferring(true);
+  const fetchProductDetails = async () => {
+    setLoading(true);
     try {
-      const result = await web3Service.transferProduct(transferTarget, productId);
-      console.log('Product transferred:', result);
+      const productData = await productService.getProduct(productId);
+      setProduct(productData);
 
-      // Update the UI
-      setProduct(prev => ({
-        ...prev,
-        owner: transferTarget,
-        history: [
-          {
-            event: 'Ownership Transferred',
-            date: new Date().toLocaleString(),
-            by: accountAddress
-          },
-          ...prev.history
-        ]
-      }));
-
-      alert('Ownership transferred successfully!');
+      // Generate QR code data
+      const baseVerificationUrl = `${window.location.origin}/verify`;
+      const qrData = `${baseVerificationUrl}?id=${productData.blockchainId}&hash=${productData.onChain.dataHash}`;
+      setQrCodeData(qrData);
     } catch (err) {
-      console.error('Error transferring ownership:', err);
-      alert('Failed to transfer ownership. Please try again.');
+      console.error('Error fetching product details:', err);
+      setError('Failed to fetch product details');
     } finally {
-      setIsTransferring(false);
-      setTransferTarget('');
+      setLoading(false);
     }
   };
 
-  // QR code download function using qrcode.react
+  useEffect(() => {
+    fetchProductDetails();
+  }, [productId]);
+
+  const handleUpdateComplete = () => {
+    setShowUpdateModal(false);
+    fetchProductDetails(); // Refresh data after update
+  };
+
+  // QR code download function
   const downloadQrCode = () => {
     // Get the SVG element
     const svg = document.getElementById('product-qr-code');
@@ -189,19 +98,61 @@ const ProductDetails = () => {
         // Download as PNG
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.download = `product-${product.id}-qr.png`;
+        link.download = `product-${product.blockchainId}-qr.png`;
         link.href = dataURL;
         link.click();
       };
 
-      // Set source for logo (use the same path as in the QRCodeSVG component)
+      // Set source for logo
       logo.src = "/icon-black.jpg";
     };
 
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
-  // Loading state
+  // Handle transfer ownership
+  const handleTransferOwnership = async () => {
+    // Improved Ethereum address validation
+    const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+
+    if (!transferTarget.trim() || !ethAddressRegex.test(transferTarget)) {
+      alert('Please enter a valid Ethereum address (0x followed by 40 hexadecimal characters)');
+      return;
+    }
+
+    setIsTransferring(true);
+    try {
+      // Use the blockchain ID from the product rather than the route parameter
+      // This ensures we're using the correct identifier format
+      const blockchainId = product.blockchainId;
+      console.log(`Transferring product ${blockchainId} to ${transferTarget}`);
+
+      const result = await web3Service.transferProduct(blockchainId, transferTarget);
+      console.log('Product transferred:', result);
+
+      alert('Ownership transferred successfully!');
+      fetchProductDetails(); // Refresh data
+    } catch (err) {
+      console.error('Error transferring ownership:', err);
+
+      // More detailed error message based on error type
+      let errorMessage = 'Failed to transfer ownership. Please try again.';
+
+      if (err.message && err.message.includes('address')) {
+        errorMessage = 'Invalid Ethereum address format. Please check the address and try again.';
+      } else if (err.message && err.message.includes('denied')) {
+        errorMessage = 'Transaction was denied. Please confirm the transaction in your wallet.';
+      } else if (err.message && err.message.includes('failed')) {
+        errorMessage = 'Blockchain transaction failed. Please check your account has enough funds.';
+      }
+
+      alert(errorMessage);
+    } finally {
+      setIsTransferring(false);
+      setTransferTarget('');
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -224,7 +175,6 @@ const ProductDetails = () => {
     );
   }
 
-  // Error state
   if (error || !product) {
     return (
       <div className="space-y-6">
@@ -238,7 +188,7 @@ const ProductDetails = () => {
           <h1 className="text-2xl font-semibold text-text">Product Not Found</h1>
         </div>
         <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 text-center">
-          <p className="text-text/60">{error || 'The requested product could not be found on the blockchain.'}</p>
+          <p className="text-text/60">{error || 'The requested product could not be found.'}</p>
           <button
             onClick={() => navigate('/dashboard/products')}
             className="mt-4 px-4 py-2 bg-cta text-background rounded-lg"
@@ -250,7 +200,20 @@ const ProductDetails = () => {
     );
   }
 
-  // Render product details
+  // Product history data
+  const productHistory = [
+    {
+      event: 'Product Created',
+      date: new Date(Number(product.onChain.createTime) * 1000).toLocaleString(),
+      by: product.manufacturer
+    },
+    {
+      event: 'Product Updated',
+      date: new Date(Number(product.onChain.updateTime) * 1000).toLocaleString(),
+      by: product.manufacturer
+    }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -276,47 +239,46 @@ const ProductDetails = () => {
         </div>
       </div>
 
+      {/* Blockchain verification banner */}
+      <div className="bg-cta/10 border border-cta/20 rounded-xl p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="bg-cta/20 rounded-full p-2 mr-3">
+            <FaCheckCircle className="text-cta text-lg" />
+          </div>
+          <div>
+            <h3 className="font-medium text-text">Blockchain Verified</h3>
+            <p className="text-xs text-text/70">This product's information is secured on the blockchain</p>
+          </div>
+        </div>
+        <a
+          href={`${blockExplorerUrl}/address/${product.onChain.owner}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-cta hover:text-cta/80 flex items-center text-sm"
+        >
+          View on Explorer <FaExternalLinkAlt className="ml-1 text-xs" />
+        </a>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main product info */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Blockchain verification banner */}
-          <div className="bg-cta/10 border border-cta/20 rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="bg-cta/20 rounded-full p-2 mr-3">
-                <FaCheckCircle className="text-cta text-lg" />
-              </div>
-              <div>
-                <h3 className="font-medium text-text">Blockchain Verified</h3>
-                <p className="text-xs text-text/70">This product's information is secured on the blockchain</p>
-              </div>
-            </div>
-            <a
-              href={`${blockExplorerUrl}/address/${product.owner}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-cta hover:text-cta/80 flex items-center text-sm"
-            >
-              View on Explorer <FaExternalLinkAlt className="ml-1 text-xs" />
-            </a>
-          </div>
-
           {/* Basic details */}
           <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-medium text-text">Product Details</h2>
-              <div className={`px-3 py-1 rounded-full text-sm flex items-center ${product.status === 'Active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                }`}>
-                {product.status === 'Active' ? (
-                  <><FaCheckCircle className="mr-1" /> Active</>
+              <div className={`px-3 py-1 rounded-full text-sm flex items-center ${product.isVerified ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                {product.isVerified ? (
+                  <><FaCheckCircle className="mr-1" /> Verified</>
                 ) : (
-                  <><FaTimesCircle className="mr-1" /> Inactive</>
+                  <><FaTimesCircle className="mr-1" /> Not Verified</>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <p className="text-text/60 text-sm">Product ID</p>
-                <p className="text-text">{product.id}</p>
+                <p className="text-text">{product.blockchainId}</p>
               </div>
               <div>
                 <p className="text-text/60 text-sm">Serial Number</p>
@@ -328,7 +290,9 @@ const ProductDetails = () => {
               </div>
               <div>
                 <p className="text-text/60 text-sm">Date Added</p>
-                <p className="text-text">{product.dateAdded}</p>
+                <p className="text-text">
+                  {new Date(Number(product.onChain.createTime) * 1000).toLocaleDateString()}
+                </p>
               </div>
               <div>
                 <p className="text-text/60 text-sm">Manufacturer</p>
@@ -337,9 +301,9 @@ const ProductDetails = () => {
               <div>
                 <p className="text-text/60 text-sm">Current Owner</p>
                 <p className="text-text font-mono text-sm">
-                  {shortenAddress(product.owner)}
+                  {shortenAddress(product.onChain.owner)}
                   <a
-                    href={`${blockExplorerUrl}/address/${product.owner}`}
+                    href={`${blockExplorerUrl}/address/${product.onChain.owner}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ml-2 text-cta hover:text-cta/80 inline-flex items-center"
@@ -361,11 +325,23 @@ const ProductDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <div>
                 <p className="text-text/60 text-sm">Created At</p>
-                <p className="text-text">{product.blockchainInfo.timestamp}</p>
+                <p className="text-text">
+                  {new Date(Number(product.onChain.createTime) * 1000).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-text/60 text-sm">Last Updated</p>
+                <p className="text-text">
+                  {new Date(Number(product.onChain.updateTime) * 1000).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-text/60 text-sm">Transaction Hash</p>
+                <p className="text-text font-mono text-xs break-all">{product.transactionHash}</p>
               </div>
               <div>
                 <p className="text-text/60 text-sm">Data Hash</p>
-                <p className="text-text font-mono text-xs break-all">{product.dataHash}</p>
+                <p className="text-text font-mono text-xs break-all">{product.onChain.dataHash}</p>
               </div>
             </div>
           </div>
@@ -379,11 +355,10 @@ const ProductDetails = () => {
               </button>
             </div>
             <div className="space-y-4">
-              {product.history.map((event, index) => (
+              {productHistory.map((event, index) => (
                 <div
                   key={index}
-                  className={`relative pl-6 pb-4 ${index === product.history.length - 1 ? '' : 'border-l border-cta/20'
-                    }`}
+                  className={`relative pl-6 pb-4 ${index === productHistory.length - 1 ? '' : 'border-l border-cta/20'}`}
                 >
                   <div className="absolute top-0 left-0 w-3 h-3 rounded-full bg-cta/30 border border-cta"></div>
                   <p className="text-text font-medium">{event.event}</p>
@@ -454,7 +429,7 @@ const ProductDetails = () => {
                   </>
                 ) : (
                   <>
-                    <FaHistory className="mr-2" /> Transfer Ownership
+                    <FaExchangeAlt className="mr-2" /> Transfer Ownership
                   </>
                 )}
               </button>
@@ -465,8 +440,11 @@ const ProductDetails = () => {
           <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm">
             <h2 className="text-lg font-medium text-text mb-4">Actions</h2>
             <div className="space-y-3">
-              <button className="w-full py-2 bg-background/30 hover:bg-background/50 text-text border border-cta/10 rounded-lg flex items-center justify-center transition-colors">
-                <FaQrcode className="mr-2" /> Update Status
+              <button
+                onClick={() => setShowUpdateModal(true)}
+                className="w-full py-2 bg-background/30 hover:bg-background/50 text-text border border-cta/10 rounded-lg flex items-center justify-center transition-colors"
+              >
+                <FaEdit className="mr-2" /> Update Information
               </button>
               <button className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-lg flex items-center justify-center transition-colors">
                 <FaTimesCircle className="mr-2" /> Report Issue
@@ -521,6 +499,19 @@ const ProductDetails = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Product Modal */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-panel max-w-lg w-full rounded-xl shadow-lg">
+            <UpdateProduct
+              product={product}
+              onUpdateComplete={handleUpdateComplete}
+              onCancel={() => setShowUpdateModal(false)}
+            />
           </div>
         </div>
       )}

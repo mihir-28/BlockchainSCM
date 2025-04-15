@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaBox, FaSave, FaEthereum } from 'react-icons/fa';
-import web3Service from '../../services/web3Service';
+import * as productService from '../../services/productService';
+import * as web3Service from '../../services/web3Service';
 
 const ProductRegistrationForm = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -93,66 +94,23 @@ const ProductRegistrationForm = ({ currentUser }) => {
       setIsSubmitting(true);
 
       try {
-        // Create blockchain data hash from product details
-        const web3 = web3Service.getWeb3();
-        const dataHash = web3.utils.sha3(JSON.stringify({
-          name: formData.name,
-          manufacturer: formData.manufacturer,
-          origin: formData.origin,
-          description: formData.description,
-          status: formData.status,
-          timestamp: Date.now()
-        }));
-
-        // Log the parameters being sent to ensure origin is included
-        console.log("Sending to blockchain:", {
-          name: formData.name,
-          manufacturer: formData.manufacturer,
-          origin: formData.origin,
-          description: formData.description,
-          dataHash
-        });
-
-        // Create product on blockchain with origin parameter
-        const result = await web3Service.createProduct(
-          formData.name,
-          formData.manufacturer,
-          formData.origin,
-          formData.description,
-          dataHash
-        );
-
-        console.log("Product registered on blockchain:", result);
-
-        // Extract product ID from blockchain transaction
-        let productId;
-        if (result.events && result.events.ProductCreated) {
-          productId = result.events.ProductCreated.returnValues.productId;
-          // Format BigInt productId to string if needed
-          if (typeof productId === 'bigint') {
-            productId = productId.toString();
-          }
-        }
-
-        // You would typically send additional product details to your backend here
-        // For now just log it and navigate
-        console.log("Additional product details:", {
-          blockchainId: productId,
+        // Register product using our unified service
+        const result = await productService.registerProduct({
           name: formData.name,
           manufacturer: formData.manufacturer,
           origin: formData.origin,
           status: formData.status,
           description: formData.description,
-          registrationDate: new Date().toISOString(),
-          transactionHash: result.transactionHash,
         });
+
+        console.log("Product registered:", result);
 
         // Show success message and redirect
-        alert('Product successfully registered on blockchain!');
+        alert('Product successfully registered on blockchain and stored in database!');
         navigate('/dashboard/products');
       } catch (error) {
         console.error("Error registering product:", error);
-        alert('Failed to register product on blockchain. Please try again.');
+        alert('Failed to register product. Please try again.');
       } finally {
         setIsSubmitting(false);
       }

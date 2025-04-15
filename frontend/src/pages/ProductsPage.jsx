@@ -5,6 +5,7 @@ import ProductRegistrationForm from '../components/Products/ProductRegistrationF
 import ProductsList from '../components/Products/ProductsList';
 import ProductDetails from '../components/Products/ProductDetails';
 import web3Service from '../services/web3Service';
+import * as productService from '../services/productService';
 
 const ProductsPage = () => {
   // Get currentUser from the outlet context
@@ -66,26 +67,29 @@ const ProductsPage = () => {
         throw new Error("Product tracking contract not initialized");
       }
 
-      const productCount = await productContract.methods.productCount().call();
+      // Get product count
+      let productCount;
+      try {
+        productCount = await productContract.methods.productCount().call();
+      } catch (err) {
+        console.error("Error calling productCount:", err);
+        throw new Error("Failed to get product count: " + err.message);
+      }
+
       const products = [];
 
-      // Fetch each product
+      // Fetch each product with full details
       for (let i = 1; i <= productCount; i++) {
-        const product = await web3Service.getProduct(i);
-
-        // Format product data
-        products.push({
-          id: formatBigInt(product.id),
-          name: product.name,
-          manufacturer: product.manufacturer,
-          owner: product.owner,
-          origin: product.origin,
-          registrationDate: new Date(Number(formatBigInt(product.createTime)) * 1000).toLocaleDateString(),
-          status: "Active", // Default status
-          createTime: formatBigInt(product.createTime),
-          updateTime: formatBigInt(product.updateTime),
-          dataHash: product.dataHash
-        });
+        try {
+          // Use the productService to get combined data from blockchain and Firebase
+          const product = await productService.getProduct(i.toString());
+          
+          // Now we'll have the complete product info including name
+          products.push(product);
+        } catch (productError) {
+          console.error(`Error fetching product ${i}:`, productError);
+          // Skip this product but continue with others
+        }
       }
 
       setBlockchainProducts(products);
@@ -299,6 +303,10 @@ const ProductsPage = () => {
                     <option value="">All Statuses</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
+                    <option value="in-transit">In Transit</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="damaged">Damaged</option>
+                    <option value="recalled">Recalled</option>
                   </select>
                 </div>
                 <div>
