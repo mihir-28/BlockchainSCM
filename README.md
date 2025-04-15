@@ -52,7 +52,7 @@ This project is designed to create a blockchain-based supply chain management sy
 -   **Node.js/Express:** For RESTful API endpoints.
 -   **MongoDB:** Off-chain data storage and analytics.
 
-## Tech Stack 🔮
+### Tech Stack 🔮
 
 -   **Frontend:** React (Vite), Tailwind CSS, React Router, Web3.js
 -   **Blockchain:** Solidity, Truffle, Ganache, MetaMask
@@ -71,23 +71,6 @@ This project is designed to create a blockchain-based supply chain management sy
 | <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/mobile-alt.svg" width="16" height="16"> **Phase 7** | October 2025 | **Mobile App Development** <br> Native mobile application with blockchain integration | 🔜 Planned | • React Native implementation<br>• Mobile wallet integration<br>• QR code scanning functionality<br>• Push notifications<br>• Offline capabilities |
 
 ### Project Completion
-
-<div align="center">
-  <h3>Project Completion: 43%</h3>
-  <div style="background-color: #f3f4f6; width: 400px; height: 20px; border-radius: 10px; overflow: hidden; margin: 0 auto;">
-    <div style="width: 43%; height: 100%; background-color: #2563eb; background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent); background-size: 20px 20px; animation: progress-bar-stripes 1s linear infinite; float: left;">
-    </div>
-  </div>
-  <div style="width: 400px; margin: 5px auto; display: flex; justify-content: space-between; font-size: 12px; color: #6b7280;">
-    <span>0%</span>
-    <span>25%</span>
-    <span>50%</span>
-    <span>75%</span>
-    <span>100%</span>
-  </div>
-</div>
-
-<br>
 
 <div align="center">
   <table>
@@ -110,7 +93,7 @@ This project is designed to create a blockchain-based supply chain management sy
   </table>
 </div>
 
-#### Features Status
+### Features Status
 
 | Feature | Status | Availability |
 |---------|--------|--------------|
