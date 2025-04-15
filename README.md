@@ -60,14 +60,70 @@ This project is designed to create a blockchain-based supply chain management sy
 
 ## Project Timeline 📅
 
-| Phase | Timeframe | Deliverables | Status |
-|-------|-----------|--------------|--------|
-| **Phase 1** | January 2025 | Project Planning, Requirements Gathering | ✅ Completed |
-| **Phase 2** | February 2025 | Architecture design | ✅ Completed |
-| **Phase 3** | March 2025 | Frontend Development, UI/UX Implementation | ✅ Completed |
-| **Phase 4** | April 2025 | Backend and Blockchain integration | 🔄 In Progress |
-| **Phase 5** | April 2025 | Testing, Documentation, Deployment | 🔜 Planned |
-| **Phase 6** | July 2025 | Mobile App Development | 🔜 Planned |
+| Phase | Timeline | Description | Status | Details |
+|-------|----------|-------------|--------|---------|
+| <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/tasks.svg" width="16" height="16"> **Phase 1** | January 2025 | **Project Planning** <br> Requirements gathering and project scope definition | ✅ Completed | • Business requirements documentation<br>• User stories & use case analysis<br>• Technology stack selection<br>• Development roadmap creation |
+| <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/server.svg" width="16" height="16"> **Phase 2** | February 2025 | **Architecture Design** <br> Design system architecture and smart contract structure | ✅ Completed | • Smart contract architecture design<br>• Database schema modeling<br>• API endpoints planning<br>• Security architecture planning |
+| <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/code.svg" width="16" height="16"> **Phase 3** | March 2025 | **Frontend Development** <br> UI/UX implementation and frontend user flows | ✅ Completed | • Core UI component development<br>• User authentication flows<br>• Dashboard & analytics interfaces<br>• Product tracking visualization<br>• Responsive design implementation |
+| <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/cogs.svg" width="16" height="16"> **Phase 4** | April 2025 | **Blockchain Integration** <br> Smart contract integration and wallet connectivity | 🔄 In Progress | • Smart contract deployment<br>• Wallet connection implementation<br>• Transaction signing & verification<br>• Chain data indexing & caching<br>• Gas optimization |
+| <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/bug.svg" width="16" height="16"> **Phase 5** | May 2025 | **Testing & Deployment** <br> QA testing, security audits and deployment | 🔜 Planned | • Automated testing suite implementation<br>• Smart contract security audits<br>• Performance optimization<br>• CI/CD pipeline setup<br>• Testnet deployment & validation |
+| <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/shield-alt.svg" width="16" height="16"> **Phase 6** | July 2025 | **Security Audits & Scaling** <br> Advanced security measures and performance optimizations | 🔜 Planned | • Penetration testing<br>• Third-party security audit<br>• Distributed system scaling<br>• Performance benchmarking<br>• Disaster recovery planning |
+| <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/solid/mobile-alt.svg" width="16" height="16"> **Phase 7** | October 2025 | **Mobile App Development** <br> Native mobile application with blockchain integration | 🔜 Planned | • React Native implementation<br>• Mobile wallet integration<br>• QR code scanning functionality<br>• Push notifications<br>• Offline capabilities |
+
+### Project Completion
+
+<div align="center">
+  <h3>Project Completion: 43%</h3>
+  <div style="background-color: #f3f4f6; width: 400px; height: 20px; border-radius: 10px; overflow: hidden; margin: 0 auto;">
+    <div style="width: 43%; height: 100%; background-color: #2563eb; background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent); background-size: 20px 20px; animation: progress-bar-stripes 1s linear infinite; float: left;">
+    </div>
+  </div>
+  <div style="width: 400px; margin: 5px auto; display: flex; justify-content: space-between; font-size: 12px; color: #6b7280;">
+    <span>0%</span>
+    <span>25%</span>
+    <span>50%</span>
+    <span>75%</span>
+    <span>100%</span>
+  </div>
+</div>
+
+<br>
+
+<div align="center">
+  <table>
+    <tr>
+      <td><span style="color: #22c55e">■</span> Research & Planning</td>
+      <td><strong>✅ Completed</strong></td>
+    </tr>
+    <tr>
+      <td><span style="color: #f59e0b">■</span> Development</td>
+      <td><strong>🔄 In Progress</strong></td>
+    </tr>
+    <tr>
+      <td><span style="color: #3b82f6">■</span> Testing</td>
+      <td><strong>🔜 Coming Soon</strong></td>
+    </tr>
+    <tr>
+      <td><span style="color: #8b5cf6">■</span> Production</td>
+      <td><strong>🔜 Coming Soon</strong></td>
+    </tr>
+  </table>
+</div>
+
+#### Features Status
+
+| Feature | Status | Availability |
+|---------|--------|--------------|
+| Product Tracking | ✅ Completed | Available |
+| Smart Contracts | ✅ Completed | Available |
+| Transaction Logging | 🔄 In Progress | In Development |
+| Access Control | 🔄 In Progress | In Development |
+| QR Code Integration | 🔄 In Progress | In Development |
+| Mobile Wallet Support | 🔜 Planned | Coming Soon |
+| Analytics Dashboard | 🔜 Planned | Coming Soon |
+| Supply Chain Visualization | 🔜 Planned | Coming Soon |
+| Real-time Notifications | 🔜 Planned | Coming Soon |
+| Multi-signature Approval | 🔜 Planned | Coming Soon |
 
 ## Getting Started 🚀
 
