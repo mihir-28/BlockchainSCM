@@ -17,8 +17,7 @@ Permission is granted to **view** the source code solely for educational or info
 > - Publish
 > - Distribute
 > - Sublicense
-> - Or otherwise exploit the Software in any form, in part or in whole  
-> without **prior written consent** of the copyright holder.
+> - Or otherwise exploit the Software in any form, in part or in whole without **prior written consent** of the copyright holder.
 
 ---
 
