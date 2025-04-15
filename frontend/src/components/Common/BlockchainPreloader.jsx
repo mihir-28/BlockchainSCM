@@ -400,7 +400,7 @@ const BlockchainPreloader = ({ onComplete }) => {
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 3, repeat: Infinity }}
       >
-        NexChain v1.0.4 • {Math.floor(Math.random() * 1000)} ms ping • {Math.floor(Math.random() * 100) + 400} blocks synced
+        NexChain v0.7.5 • {Math.floor(Math.random() * 1000)} ms ping • {Math.floor(Math.random() * 100) + 400} blocks synced
       </motion.div>
     </motion.div>
   );
