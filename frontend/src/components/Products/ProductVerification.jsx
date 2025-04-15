@@ -18,6 +18,19 @@ const ProductVerification = () => {
       setLoading(true);
       try {
         const productData = await productService.getProduct(productId);
+        
+        // Fix verification inconsistencies
+        if (productData.blockchainDataAvailable && productData.onChain) {
+          // Use the helper or manually verify
+          const { isVerified, verificationSource } = productService.verifyProductData(productData);
+          productData.isVerified = isVerified;
+          productData.verificationSource = verificationSource;
+        } else {
+          // Default to database verification if blockchain data isn't available
+          productData.isVerified = true;
+          productData.verificationSource = 'database';
+        }
+        
         setProduct(productData);
       } catch (err) {
         console.error('Error verifying product:', err);
@@ -104,9 +117,25 @@ const ProductVerification = () => {
 
             <p className="text-text/70 text-center mt-2">
               {product.isVerified
-                ? 'This product is authentic and registered on the blockchain.'
-                : 'This product could not be verified. It may be counterfeit.'}
+                ? product.verificationSource === 'blockchain-full' 
+                  ? 'This product is authentic and ownership has been verified on the blockchain.'
+                  : product.verificationSource === 'blockchain-exists'
+                    ? 'This product exists on the blockchain, indicating it is authentic.'
+                    : 'This product is in our database but blockchain verification is unavailable.'
+                : 'This product could not be verified. It may be counterfeit or data may be corrupted.'}
             </p>
+            
+            {/* Display verification source badge */}
+            <div className={`mt-3 px-4 py-1 rounded-full text-xs font-medium
+              ${product.verificationSource.includes('blockchain') 
+                ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
+                : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
+              {product.verificationSource === 'blockchain-full' 
+                ? 'Full Blockchain Verification' 
+                : product.verificationSource === 'blockchain-exists'
+                  ? 'Product Verified On Blockchain'
+                  : 'Database Verified'}
+            </div>
           </div>
 
           <div className="border-t border-cta/20 pt-6 mb-6">
@@ -172,6 +201,59 @@ const ProductVerification = () => {
                 </button>
               </div>
             )}
+
+            {product.blockchainDataAvailable && process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={() => {
+                  const { isVerified, verificationSource } = productService.verifyProductData(product);
+                  setProduct({
+                    ...product,
+                    isVerified,
+                    verificationSource
+                  });
+                }}
+                className="mt-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-500 rounded-lg flex items-center justify-center"
+              >
+                Re-verify Product
+              </button>
+            )}
+
+            {/* Add this button for debugging */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={() => {
+                  // Extract both the chain and db data for comparison
+                  const blockchainData = product.onChain;
+                  const dbData = {
+                    name: product.name,
+                    manufacturer: product.manufacturer,
+                    serialNumber: product.serialNumber,
+                    ownerAddress: product.ownerAddress || '',
+                    // Other fields
+                  };
+                  
+                  // Check existence
+                  const existsOnChain = !!blockchainData && !!blockchainData.dataHash;
+                  
+                  // Check ownership
+                  const chainOwner = blockchainData ? blockchainData.owner.toLowerCase() : 'none';
+                  const dbOwner = product.ownerAddress ? product.ownerAddress.toLowerCase() : 'none';
+                  
+                  alert(`VERIFICATION STATUS:
+                  
+Product exists on chain: ${existsOnChain ? 'YES' : 'NO'}
+Blockchain owner: ${chainOwner}
+Database owner: ${dbOwner}
+Owners match: ${chainOwner === dbOwner ? 'YES' : 'NO'}
+
+Verification Source: ${product.verificationSource}
+Is Verified: ${product.isVerified ? 'YES' : 'NO'}`);
+                }}
+                className="mt-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-500 rounded-lg flex items-center justify-center"
+              >
+                Debug Verification
+              </button>
+            )}
           </div>
 
           <div className="flex justify-between items-center">
@@ -216,6 +298,58 @@ const ProductVerification = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Debug Section */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-6 p-4 bg-gray-900 text-gray-200 rounded-lg font-mono text-xs">
+          <h3 className="text-sm font-bold mb-2">Debug Info:</h3>
+          <div className="grid grid-cols-2 gap-y-1">
+            <span>Product ID:</span>
+            <span>{productId}</span>
+            <span>Blockchain ID:</span>
+            <span>{product.blockchainId || 'N/A'}</span>
+            <span>Verification Source:</span>
+            <span>{product.verificationSource || 'unknown'}</span>
+            <span>Is Verified:</span>
+            <span>{product.isVerified ? 'Yes' : 'No'}</span>
+            <span>Blockchain Data:</span>
+            <span>{product.blockchainDataAvailable ? 'Available' : 'Unavailable'}</span>
+            {product.onChain && (
+              <>
+                <span>Data Hash:</span>
+                <span className="break-all">{product.onChain.dataHash}</span>
+                
+                <span>Product Fields:</span>
+                <span className="break-all">
+                  {JSON.stringify({
+                    name: product.name,
+                    serialNumber: product.serialNumber,
+                    manufacturer: product.manufacturer,
+                    origin: product.origin
+                  })}
+                </span>
+                
+                <span>Calculated Hash:</span>
+                <span className="break-all">
+                  {(() => {
+                    try {
+                      return productService.createDataHash(product);
+                    } catch (err) {
+                      return 'Error calculating hash';
+                    }
+                  })()}
+                </span>
+              </>
+            )}
+            <span>Data Last Updated:</span>
+            <span>{product.updatedAt || product.registrationDate || 'unknown'}</span>
+            <span>Hash Last Updated:</span>
+            <span>{product.hashLastUpdated || product.registrationDate || 'unknown'}</span>
+            <span>Verification Type:</span>
+            <span>{product.verificationSource || 'unknown'}</span>
           </div>
         </div>
       )}

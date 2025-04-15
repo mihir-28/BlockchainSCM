@@ -16,7 +16,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import OverviewPage from "./components/Dashboard/OverviewPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetails from "./components/Products/ProductDetails";
-import ProductVerification from './components/Products/ProductVerification';
+import ProductVerification from "./components/Products/ProductVerification";
 import TransactionsPage from "./pages/TransactionsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -44,7 +44,7 @@ const ROUTES_WITHOUT_TRANSITIONS = [
   '/login',
   '/register',
   '/wallet-connection',
-  '/*',
+  '/dashboard/*',
 ];
 
 // Dashboard route prefix
@@ -95,7 +95,7 @@ const AppContent = () => {
             <Route path="privacy-policy" element={<PolicyPage />} />
             <Route path="support" element={<SupportPage />} />
             <Route path="faq" element={<FAQPage />} />
-            <Route path="/verify/:productId" element={<ProductVerification />} />
+            <Route path="verify/:productId" element={<ProductVerification />} />
           </Route>
 
           {/* Dashboard routes */}
