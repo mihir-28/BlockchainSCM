@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaExchangeAlt, FaCheck, FaTimes } from 'react-icons/fa';
 import * as productService from '../../services/productService';
+import { showTransferSuccessToast, showTransferErrorToast } from '../../services/toastService';
 
 const TransferOwnership = ({ product, onTransferComplete, onCancel }) => {
   const [toAddress, setToAddress] = useState('');
@@ -26,7 +27,11 @@ const TransferOwnership = ({ product, onTransferComplete, onCancel }) => {
     setIsSubmitting(true);
     
     try {
+      console.log('TransferOwnership: Starting transfer to', toAddress);
+      // The correct way - using productService (not web3Service directly)
       await productService.transferProduct(product.blockchainId, toAddress);
+      // Show success toast
+      showTransferSuccessToast();
       setSuccess(true);
       setToAddress('');
       if (onTransferComplete) {
@@ -35,6 +40,8 @@ const TransferOwnership = ({ product, onTransferComplete, onCancel }) => {
     } catch (err) {
       console.error('Error transferring product:', err);
       setError(err.message || 'Failed to transfer ownership. Please try again.');
+      // Show error toast
+      showTransferErrorToast(err.message);
     } finally {
       setIsSubmitting(false);
     }

@@ -18,7 +18,7 @@ const ProductVerification = () => {
       setLoading(true);
       try {
         const productData = await productService.getProduct(productId);
-        
+
         // Fix verification inconsistencies
         if (productData.blockchainDataAvailable && productData.onChain) {
           // Use the helper or manually verify
@@ -30,7 +30,7 @@ const ProductVerification = () => {
           productData.isVerified = true;
           productData.verificationSource = 'database';
         }
-        
+
         setProduct(productData);
       } catch (err) {
         console.error('Error verifying product:', err);
@@ -101,8 +101,8 @@ const ProductVerification = () => {
         <div className="bg-panel/40 backdrop-blur-sm border border-cta/20 rounded-xl p-6 shadow-sm max-w-2xl w-full">
           <div className="flex flex-col items-center mb-6">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${product.isVerified
-                ? 'bg-green-500/20 text-green-500'
-                : 'bg-red-500/20 text-red-500'
+              ? 'bg-green-500/20 text-green-500'
+              : 'bg-red-500/20 text-red-500'
               }`}>
               {product.isVerified
                 ? <FaCheck className="text-3xl" />
@@ -117,21 +117,21 @@ const ProductVerification = () => {
 
             <p className="text-text/70 text-center mt-2">
               {product.isVerified
-                ? product.verificationSource === 'blockchain-full' 
+                ? product.verificationSource === 'blockchain-full'
                   ? 'This product is authentic and ownership has been verified on the blockchain.'
                   : product.verificationSource === 'blockchain-exists'
                     ? 'This product exists on the blockchain, indicating it is authentic.'
                     : 'This product is in our database but blockchain verification is unavailable.'
                 : 'This product could not be verified. It may be counterfeit or data may be corrupted.'}
             </p>
-            
+
             {/* Display verification source badge */}
             <div className={`mt-3 px-4 py-1 rounded-full text-xs font-medium
-              ${product.verificationSource.includes('blockchain') 
-                ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
+              ${product.verificationSource.includes('blockchain')
+                ? 'bg-green-500/10 text-green-500 border border-green-500/20'
                 : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
-              {product.verificationSource === 'blockchain-full' 
-                ? 'Full Blockchain Verification' 
+              {product.verificationSource === 'blockchain-full'
+                ? 'Full Blockchain Verification'
                 : product.verificationSource === 'blockchain-exists'
                   ? 'Product Verified On Blockchain'
                   : 'Database Verified'}
@@ -170,7 +170,7 @@ const ProductVerification = () => {
               <div>
                 <p className="text-text/60 text-sm">Created On</p>
                 <p className="font-medium">
-                  {product.blockchainDataAvailable 
+                  {product.blockchainDataAvailable
                     ? new Date(Number(product.onChain.createTime) * 1000).toLocaleString()
                     : 'Blockchain data unavailable'}
                 </p>
@@ -231,14 +231,14 @@ const ProductVerification = () => {
                     ownerAddress: product.ownerAddress || '',
                     // Other fields
                   };
-                  
+
                   // Check existence
                   const existsOnChain = !!blockchainData && !!blockchainData.dataHash;
-                  
+
                   // Check ownership
                   const chainOwner = blockchainData ? blockchainData.owner.toLowerCase() : 'none';
                   const dbOwner = product.ownerAddress ? product.ownerAddress.toLowerCase() : 'none';
-                  
+
                   alert(`VERIFICATION STATUS:
                   
 Product exists on chain: ${existsOnChain ? 'YES' : 'NO'}
@@ -321,7 +321,7 @@ Is Verified: ${product.isVerified ? 'YES' : 'NO'}`);
               <>
                 <span>Data Hash:</span>
                 <span className="break-all">{product.onChain.dataHash}</span>
-                
+
                 <span>Product Fields:</span>
                 <span className="break-all">
                   {JSON.stringify({
@@ -331,7 +331,7 @@ Is Verified: ${product.isVerified ? 'YES' : 'NO'}`);
                     origin: product.origin
                   })}
                 </span>
-                
+
                 <span>Calculated Hash:</span>
                 <span className="break-all">
                   {(() => {

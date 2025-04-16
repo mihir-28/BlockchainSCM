@@ -151,21 +151,31 @@ export const getProduct = async (blockchainId) => {
   }
 };
 
-// Transfer product ownership
-export const transferProduct = async (blockchainId, toAddress) => {
+/**
+ * Transfers product ownership on the blockchain and updates Firebase
+ * @param {string} productId - The blockchain ID of the product
+ * @param {string} toAddress - The new owner's Ethereum address
+ * @returns {Promise<Object>} - The transfer result
+ */
+export const transferProduct = async (productId, toAddress) => {
   try {
-    // 1. First transfer on blockchain
-    const blockchainResult = await web3Service.transferProduct(blockchainId, toAddress);
-
-    // 2. Then update in Firebase
-    await firebaseService.updateProductByBlockchainId(blockchainId, {
+    // First, transfer on the blockchain
+    console.log(`Starting transfer of product ${productId} to ${toAddress}`);
+    const blockchainResult = await web3Service.transferProduct(productId, toAddress);
+    console.log('Blockchain transfer successful:', blockchainResult);
+    
+    // Then update the owner in Firebase
+    console.log('Updating Firebase with new owner:', toAddress);
+    const updateResult = await firebaseService.updateProductByBlockchainId(productId, {
       ownerAddress: toAddress,
-      status: 'Transferred'
+      transactionHash: blockchainResult.transactionHash,
+      lastTransferDate: new Date().toISOString()
     });
-
+    
+    console.log('Firebase update result:', updateResult);
     return blockchainResult;
   } catch (error) {
-    console.error("Error transferring product:", error);
+    console.error('Error transferring product ownership:', error);
     throw error;
   }
 };

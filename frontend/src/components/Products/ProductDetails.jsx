@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import UpdateProduct from './UpdateProduct';
 import { QRCodeSVG } from 'qrcode.react';
+import { showTransferSuccessToast, showTransferErrorToast } from '../../services/toastService';
 
 const shortenAddress = (address) => {
   if (!address) return '';
@@ -36,11 +37,24 @@ const ProductDetails = () => {
     setLoading(true);
     try {
       const productData = await productService.getProduct(productId);
+      
+      // Use the same verification logic as in ProductVerification
+      if (productData.blockchainDataAvailable && productData.onChain) {
+        // Use the helper function from productService
+        const { isVerified, verificationSource } = productService.verifyProductData(productData);
+        productData.isVerified = isVerified;
+        productData.verificationSource = verificationSource;
+      } else {
+        // Default to database verification if blockchain data isn't available
+        productData.isVerified = true;
+        productData.verificationSource = 'database';
+      }
+      
       setProduct(productData);
 
       // Generate QR code data
       const baseVerificationUrl = `${window.location.origin}/verify`;
-      const qrData = `${baseVerificationUrl}?id=${productData.blockchainId}&hash=${productData.onChain.dataHash}`;
+      const qrData = `${baseVerificationUrl}/${productData.blockchainId}`;
       setQrCodeData(qrData);
     } catch (err) {
       console.error('Error fetching product details:', err);
@@ -116,28 +130,30 @@ const ProductDetails = () => {
     const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 
     if (!transferTarget.trim() || !ethAddressRegex.test(transferTarget)) {
-      alert('Please enter a valid Ethereum address (0x followed by 40 hexadecimal characters)');
+      showTransferErrorToast('Please enter a valid Ethereum address (0x followed by 40 hexadecimal characters)');
       return;
     }
 
     setIsTransferring(true);
     try {
-      // Use the blockchain ID from the product rather than the route parameter
-      // This ensures we're using the correct identifier format
       const blockchainId = product.blockchainId;
       console.log(`Transferring product ${blockchainId} to ${transferTarget}`);
 
-      const result = await web3Service.transferProduct(blockchainId, transferTarget);
+      const result = await productService.transferProduct(blockchainId, transferTarget);
       console.log('Product transferred:', result);
 
-      alert('Ownership transferred successfully!');
-      fetchProductDetails(); // Refresh data
+      // Replace alert with toast
+      showTransferSuccessToast();
+
+      // Add a slight delay before refreshing to ensure Firebase has updated
+      setTimeout(() => {
+        fetchProductDetails(); // This should get the latest data including the new owner
+      }, 1000);
     } catch (err) {
       console.error('Error transferring ownership:', err);
 
       // More detailed error message based on error type
       let errorMessage = 'Failed to transfer ownership. Please try again.';
-
       if (err.message && err.message.includes('address')) {
         errorMessage = 'Invalid Ethereum address format. Please check the address and try again.';
       } else if (err.message && err.message.includes('denied')) {
@@ -146,7 +162,7 @@ const ProductDetails = () => {
         errorMessage = 'Blockchain transaction failed. Please check your account has enough funds.';
       }
 
-      alert(errorMessage);
+      showTransferErrorToast(errorMessage);
     } finally {
       setIsTransferring(false);
       setTransferTarget('');
@@ -240,14 +256,32 @@ const ProductDetails = () => {
       </div>
 
       {/* Blockchain verification banner */}
-      <div className="bg-cta/10 border border-cta/20 rounded-xl p-4 flex items-center justify-between">
+      <div className={`rounded-xl p-4 flex items-center justify-between ${
+        product.isVerified ? 'bg-cta/10 border border-cta/20' : 'bg-red-500/10 border border-red-500/20'
+      }`}>
         <div className="flex items-center">
-          <div className="bg-cta/20 rounded-full p-2 mr-3">
-            <FaCheckCircle className="text-cta text-lg" />
+          <div className={`rounded-full p-2 mr-3 ${
+            product.isVerified ? 'bg-cta/20' : 'bg-red-500/20'
+          }`}>
+            {product.isVerified ? (
+              <FaCheckCircle className="text-cta text-lg" />
+            ) : (
+              <FaTimesCircle className="text-red-400 text-lg" />
+            )}
           </div>
           <div>
-            <h3 className="font-medium text-text">Blockchain Verified</h3>
-            <p className="text-xs text-text/70">This product's information is secured on the blockchain</p>
+            <h3 className="font-medium text-text">
+              {product.isVerified ? 'Blockchain Verified' : 'Not Verified'}
+            </h3>
+            <p className="text-xs text-text/70">
+              {product.isVerified 
+                ? product.verificationSource === 'blockchain-full'
+                  ? "This product's information is fully verified on the blockchain."
+                  : product.verificationSource === 'blockchain-exists'
+                    ? "This product exists on the blockchain, indicating it is authentic." 
+                    : "This product is in our database but blockchain verification is unavailable."
+                : "This product's authenticity could not be verified"}
+            </p>
           </div>
         </div>
         <a

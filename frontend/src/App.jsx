@@ -30,11 +30,12 @@ import SupportPage from './pages/SupportPage';
 import FAQPage from './pages/FAQPage';
 import NotFound from "./pages/NotFound";
 
-
 // Blockchain related imports
 import BlockchainTest from "./components/Blockchain/BlockchainTest";
 
 import './index.css';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Import mock data for dashboard
 import { kpiData, recentTransactions } from "./data/mockData";
@@ -163,6 +164,20 @@ const App = () => {
           </BrowserRouter>
         </AuthProvider>
       )}
+
+      {/* Toast container - place it at the end */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark" // Matches your dark theme
+      />
     </>
   );
 };
