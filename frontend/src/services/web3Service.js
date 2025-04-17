@@ -44,9 +44,9 @@ export const initWeb3 = async () => {
         accounts = await web3Instance.eth.getAccounts();
         
         // Initialize contract instances
-        initContracts();
-
-        return true;
+        const contractsInitialized = await initContracts();
+        
+        return contractsInitialized;
       } catch (error) {
         console.error("User denied account access:", error);
         return false;
@@ -57,8 +57,8 @@ export const initWeb3 = async () => {
       web3Instance = new Web3(window.web3.currentProvider);
       networkId = await web3Instance.eth.net.getId();
       accounts = await web3Instance.eth.getAccounts();
-      initContracts();
-      return true;
+      const contractsInitialized = await initContracts();
+      return contractsInitialized;
     }
     // Non-dapp browsers
     else {
@@ -71,13 +71,12 @@ export const initWeb3 = async () => {
   }
 };
 
-// Also update the initContracts function to add error handling
-const initContracts = () => {
+// Update the initContracts function
+const initContracts = async () => {
   try {
     // Log network ID to ensure we're using the right network
-    web3Instance.eth.net.getId().then(networkId => {
-      console.log("Connected to network ID:", networkId);
-    });
+    const currentNetworkId = await web3Instance.eth.net.getId();
+    console.log("Connected to network ID:", currentNetworkId);
     
     // Verify contract ABIs
     if (!SupplyChainAgreementABI.abi) {
@@ -207,8 +206,15 @@ export const getShipment = async (shipmentId) => {
 // Product Tracking methods
 export const createProduct = async (manufacturer, origin, dataHash) => {
   try {
-    const productContract = getProductTrackingContract();
+    const productContract = await getProductTrackingContract();
+    if (!productContract) {
+      throw new Error('Contract is not available');
+    }
+    
     const accounts = await web3Instance.eth.getAccounts();
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No connected accounts found');
+    }
     
     const result = await productContract.methods
       .createProduct(manufacturer, origin, dataHash)
@@ -223,8 +229,15 @@ export const createProduct = async (manufacturer, origin, dataHash) => {
 
 export const transferProduct = async (productId, to) => {
   try {
-    const productContract = getProductTrackingContract();
+    const productContract = await getProductTrackingContract();
+    if (!productContract) {
+      throw new Error('Contract is not available');
+    }
+    
     const accounts = await web3Instance.eth.getAccounts();
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No connected accounts found');
+    }
     
     const result = await productContract.methods
       .transferProduct(productId, to)
@@ -239,9 +252,19 @@ export const transferProduct = async (productId, to) => {
 
 export const updateProductData = async (productId, newDataHash) => {
   try {
-    const productContract = getProductTrackingContract();
-    const accounts = await web3Instance.eth.getAccounts();
+    // Get the contract instance using the async function
+    const productContract = await getProductTrackingContract();
+    if (!productContract) {
+      throw new Error('Contract is not available');
+    }
     
+    // Get the current account
+    const accounts = await web3Instance.eth.getAccounts();
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No connected accounts found');
+    }
+    
+    // Call the method with proper error handling
     const result = await productContract.methods
       .updateProductData(productId, newDataHash)
       .send({ from: accounts[0] });
@@ -255,7 +278,7 @@ export const updateProductData = async (productId, newDataHash) => {
 
 export const getProduct = async (productId) => {
   try {
-    const productContract = getProductTrackingContract();
+    const productContract = await getProductTrackingContract();
     if (!productContract) {
       throw new Error('Contract is not available');
     }
@@ -404,11 +427,14 @@ export const hasLocalRole = (role) => {
 export const getSupplyChainContract = () => supplyChainAgreement;
 
 // Fix for the contract initialization function
-export const getProductTrackingContract = () => {
+export const getProductTrackingContract = async () => {
   try {
+    // Make sure web3 is initialized before proceeding
     if (!web3Instance) {
-      console.warn("Web3 is not initialized");
-      return null;
+      const initialized = await initWeb3();
+      if (!initialized) {
+        throw new Error('Web3 is not initialized');
+      }
     }
     
     // Check if ABI is properly imported and structured
@@ -434,7 +460,7 @@ export const getProductTrackingContract = () => {
     );
   } catch (error) {
     console.error("Error creating contract instance:", error);
-    return null;
+    throw error;
   }
 };
 

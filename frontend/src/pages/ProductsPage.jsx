@@ -62,7 +62,7 @@ const ProductsPage = () => {
   const loadBlockchainProducts = async () => {
     try {
       // Get all products from the blockchain
-      const productContract = web3Service.getProductTrackingContract();
+      const productContract = await web3Service.getProductTrackingContract();
       if (!productContract) {
         throw new Error("Product tracking contract not initialized");
       }
@@ -168,9 +168,9 @@ const ProductsPage = () => {
 
   // Set up blockchain event listeners for product updates
   useEffect(() => {
-    const setupEventListeners = () => {
+    const setupEventListeners = async () => {
       try {
-        const productContract = web3Service.getProductTrackingContract();
+        const productContract = await web3Service.getProductTrackingContract();
         if (!productContract || !isConnected) return () => { };
 
         // Verify events exist before subscribing
@@ -227,9 +227,13 @@ const ProductsPage = () => {
 
     let cleanup = () => { };
     if (isConnected) {
-      cleanup = setupEventListeners() || (() => { });
+      setupEventListeners().then(result => {
+        if (typeof result === 'function') {
+          cleanup = result;
+        }
+      });
     }
-    return cleanup;
+    return () => cleanup();
   }, [isConnected]);
 
   return (

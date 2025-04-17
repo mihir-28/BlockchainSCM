@@ -773,10 +773,6 @@ const TransactionsPage = () => {
                   <h4 className="text-text/70 text-sm uppercase tracking-wider mb-4">Transaction Information</h4>
 
                   <div className="space-y-4">
-                    <div>
-                      <div className="text-xs text-text/60 mb-1">Type</div>
-                      <div className="text-text capitalize">{selectedTransaction.type}</div>
-                    </div>
 
                     {selectedTransaction.type === 'product' && (
                       <div>

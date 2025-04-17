@@ -51,7 +51,7 @@ const DevStatus = () => {
       id: 3,
       title: "Frontend Development",
       description: "UI/UX implementation and frontend user flows",
-      status: "in-progress",
+      status: "completed",
       date: "March 2025",
       details: [
         "Core UI component development",
@@ -60,14 +60,13 @@ const DevStatus = () => {
         "Product tracking visualization",
         "Responsive design implementation"
       ],
-      // icon: <FaCode className="text-green-500" />
-      icon: <FaSpinner className="text-amber-500 animate-spin-slow" />
+      icon: <FaCode className="text-green-500" />
     },
     {
       id: 4,
       title: "Blockchain Integration",
       description: "Smart contract integration and wallet connectivity",
-      status: "in-progress",
+      status: "completed",
       date: "April 2025",
       details: [
         "Smart contract deployment",
@@ -76,14 +75,14 @@ const DevStatus = () => {
         "Chain data indexing & caching",
         "Gas optimization"
       ],
-      // icon: <FaCubes className="text-green-500" />
-      icon: <FaSpinner className="text-amber-500 animate-spin-slow" />
+      icon: <FaCubes className="text-green-500" />
+      // icon: <FaSpinner className="text-amber-500 animate-spin-slow" />
     },
     {
       id: 5,
       title: "Testing & Deployment",
       description: "QA testing, security audits and deployment",
-      status: "planned",
+      status: "in-progress",
       date: "May 2025",
       details: [
         "Automated testing suite implementation",
@@ -92,7 +91,9 @@ const DevStatus = () => {
         "CI/CD pipeline setup",
         "Testnet deployment & validation"
       ],
-      icon: <FaBug className="text-blue-400" />
+      // icon: <FaBug className="text-blue-400" />
+      icon: <FaSpinner className="text-amber-500 animate-spin-slow" />
+
     },
     {
       id: 6,
@@ -131,13 +132,13 @@ const DevStatus = () => {
     { name: "Product Tracking", status: "completed", completion: 1.0 },
     { name: "Smart Contracts", status: "completed", completion: 0.5 },
     { name: "Transaction Logging", status: "completed", completion: 1.0 },
-    { name: "Access Control", status: "in-progress", completion: 0.2 },
-    { name: "QR Code Integration", status: "in-progress", completion: 0.5 },
-    { name: "Mobile Wallet Support", status: "planned", completion: 0.0 },
+    { name: "QR Code Integration", status: "completed", completion: 1.0 },
+    { name: "Access Control", status: "in-progress", completion: 0.8 },
     { name: "Analytics Dashboard", status: "planned", completion: 0.0 },
     { name: "Supply Chain Visualization", status: "planned", completion: 0.0 },
     { name: "Real-time Notifications", status: "planned", completion: 0.0 },
-    { name: "Multi-signature Approval", status: "planned", completion: 0.0 }
+    { name: "Multi-signature Approval", status: "planned", completion: 0.0 },
+    { name: "Mobile Wallet Support", status: "planned", completion: 0.0 }
   ];
 
   // Helper function to render status icon
