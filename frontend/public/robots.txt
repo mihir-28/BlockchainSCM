@@ -1,0 +1,20 @@
+# robots.txt for NexChain Supply Chain Platform
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /features
+Allow: /contact
+Allow: /support
+Allow: /faq
+Allow: /terms-of-service
+Allow: /privacy-policy
+Allow: /verify
+
+# Disallow authentication-required pages
+Disallow: /login
+Disallow: /register
+Disallow: /wallet-connection
+Disallow: /dashboard/
+
+# Sitemap location
+Sitemap: https://nexchain.netlify.app/sitemap.xml

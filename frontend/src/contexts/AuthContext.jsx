@@ -29,19 +29,61 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null); // Combined user data
   const [loading, setLoading] = useState(true);
 
+  // Modify your signup function to handle role assignment
   async function signup(email, password, userData) {
-    // Create user with email and password
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Store additional user data in Firestore
-    await setDoc(doc(db, "users", credential.user.uid), {
-      ...userData,
-      email,
-      createdAt: new Date().toISOString(),
-      role: "user" // Default role
-    });
-    
-    return credential;
+    try {
+      // Create user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Set display name if provided
+      if (userData.displayName) {
+        await updateProfile(user, { displayName: userData.displayName });
+      }
+      
+      // Store the selected role
+      const userRole = userData.role || 'CONSUMER_ROLE'; // Default to CONSUMER if not specified
+      
+      // Store user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        ...userData,
+        role: userRole,
+        createdAt: new Date().toISOString()
+      });
+      
+      // Connect to the blockchain and assign the role if wallet is connected
+      const { ethereum } = window;
+      if (ethereum) {
+        try {
+          const accounts = await ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            const userWalletAddress = accounts[0];
+            
+            // Update Firestore with wallet address
+            await updateDoc(doc(db, "users", user.uid), {
+              walletAddress: userWalletAddress
+            });
+            
+            // Call web3Service to assign role
+            const web3Service = await import('../services/web3Service');
+            await web3Service.initWeb3();
+            
+            // Grant the selected role
+            if (userRole && userRole !== 'ADMIN_ROLE') { // Prevent self-assignment of admin
+              await web3Service.grantRole(userWalletAddress, userRole);
+            }
+          }
+        } catch (error) {
+          console.error("Error assigning blockchain role:", error);
+          // Continue without failing - role can be assigned later
+        }
+      }
+      
+      return user;
+    } catch (error) {
+      console.error("Error signing up:", error);
+      throw error;
+    }
   }
 
   function login(email, password) {
@@ -56,40 +98,49 @@ export function AuthProvider({ children }) {
     return sendPasswordResetEmail(auth, email);
   }
 
+  // Update your signInWithGoogle function in AuthContext.jsx
   async function signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
-    
     try {
+      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      const isNewUser = result._tokenResponse.isNewUser;
       
-      // Check if this is a new user by looking for existing document
+      // Check if user exists in Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
       
-      // If user doesn't exist in Firestore yet, create a new user document
-      if (!userDoc.exists()) {
+      if (!userDoc.exists() || isNewUser) {
+        // Create new user entry if they don't exist
         await setDoc(doc(db, "users", user.uid), {
           displayName: user.displayName || '',
           email: user.email,
-          photoURL: user.photoURL || '',
+          photoURL: user.photoURL,
           creationTime: new Date().toISOString(),
           lastLoginTime: new Date().toISOString(),
-          role: 'user',
-          company: '',  // You might want to collect this information later
-          phone: user.phoneNumber || ''
+          // Don't set role yet - will be set in the role selection page
         });
+        
+        // Flag to redirect to role selection
+        sessionStorage.setItem('needsRoleSelection', 'true');
       } else {
-        // Update last login time for existing users
-        await setDoc(doc(db, "users", user.uid), {
+        // Existing user - check if they have a role
+        const userData = userDoc.data();
+        if (!userData.role) {
+          sessionStorage.setItem('needsRoleSelection', 'true');
+        }
+        
+        // Update last login time
+        await updateDoc(doc(db, "users", user.uid), {
           lastLoginTime: new Date().toISOString()
-        }, { merge: true });
+        });
       }
       
-    return result;
-  } catch (error) {
-    throw error;
+      return user;
+    } catch (error) {
+      console.error("Error signing in with Google:", error);
+      throw error;
+    }
   }
-}
 
   // Load user profile data from Firestore
   async function getUserProfile(userId) {
@@ -233,6 +284,20 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }
 
+  // Add this to your AuthContext provider
+  const updateUserData = async (userData) => {
+    try {
+      if (!currentUser) return false;
+      
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, userData);
+      return true;
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -267,7 +332,8 @@ export function AuthProvider({ children }) {
     updateUserWallet,
     updateUserProfile,
     updatePassword,
-    addAuthNavigation
+    addAuthNavigation,
+    updateUserData // Add this line
   };
 
   return (

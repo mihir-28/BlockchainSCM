@@ -10,7 +10,8 @@ import {
   FaUserCircle,
   FaBars,
   FaTimes,
-  FaHome
+  FaHome,
+  FaUserShield,
 } from 'react-icons/fa';
 
 const DashboardNav = ({ handleLogout }) => {
@@ -50,6 +51,7 @@ const DashboardNav = ({ handleLogout }) => {
     { path: '/dashboard/analytics', label: 'Analytics', icon: <FaChartPie className="mr-2" /> },
     { path: '/dashboard/settings', label: 'Settings', icon: <FaCog className="mr-2" /> },
     { path: '/dashboard/profile', label: 'Profile', icon: <FaUserCircle className="mr-2" /> },
+    { path: '/dashboard/roles', label: 'Roles', icon: <FaUserShield className="mr-2" /> },
   ];
 
   const toggleMobileMenu = () => {

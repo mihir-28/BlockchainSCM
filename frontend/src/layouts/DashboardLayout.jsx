@@ -3,9 +3,9 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
 import DashboardNav from '../components/Dashboard/DashboardNav';
-import { recentTransactions, kpiData } from '../data/mockData'; // Import mock data
+import { recentTransactions, kpiData } from '../data/mockData';
 import { isMobileDevice } from '../utils/deviceDetection';
-import BlockchainDebugger from '../components/Debug/BlockchainDebugger'; // Import the BlockchainDebugger component
+// import BlockchainDebugger from '../components/Debug/BlockchainDebugger';
 
 const DashboardLayout = () => {
   // STATE HOOKS
@@ -114,7 +114,7 @@ const DashboardLayout = () => {
           kpiData, 
           recentTransactions
         }} />
-        <BlockchainDebugger />
+        {/* <BlockchainDebugger /> */}
       </div>
     </div>
   );

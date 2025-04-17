@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock, FaBuilding, FaPhone, FaUserPlus, FaGoogle } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaBuilding, FaPhone, FaUserPlus, FaGoogle, FaBriefcase } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import NetworkAnimation from '../components/Common/NetworkAnimation';
 import { isMobileDevice } from '../utils/deviceDetection';
@@ -13,7 +13,8 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: '',
     company: '',
-    phone: ''
+    phone: '',
+    role: 'CONSUMER_ROLE' // Default role
   });
   
   const [errors, setErrors] = useState({});
@@ -119,7 +120,7 @@ const RegisterPage = () => {
           phone: formData.phone,
           creationTime: new Date().toISOString(),
           lastLoginTime: new Date().toISOString(),
-          role: 'user'
+          role: formData.role
         };
         
         // Sign up with email and password
@@ -150,8 +151,15 @@ const RegisterPage = () => {
     
     try {
       await signInWithGoogle();
-      // Redirect to wallet connection
-      navigate('/wallet-connection');
+      
+      // Check if role selection is needed
+      if (sessionStorage.getItem('needsRoleSelection') === 'true') {
+        sessionStorage.removeItem('needsRoleSelection');
+        navigate('/select-role');
+      } else {
+        // Already has a role, go to wallet connection
+        navigate('/wallet-connection');
+      }
     } catch (error) {
       let errorMessage = "Google sign-in failed. Please try again.";
       
@@ -396,6 +404,31 @@ const RegisterPage = () => {
                       placeholder="+1 (123) 456-7890"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="role" className="block text-text/90 mb-1 text-sm">Your Role</label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -mt-2.5 text-text/50">
+                      <FaBriefcase />
+                    </div>
+                    <select
+                      id="role"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      className="w-full px-10 py-3 bg-background/60 border border-cta/20 
+                               rounded-lg focus:outline-none focus:ring-2 focus:ring-cta/30 transition-all duration-200"
+                    >
+                      <option value="CONSUMER_ROLE">Consumer</option>
+                      <option value="MANUFACTURER_ROLE">Manufacturer</option>
+                      <option value="DISTRIBUTOR_ROLE">Distributor</option>
+                      <option value="RETAILER_ROLE">Retailer</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-text/50 mt-1">
+                    Select your primary role in the supply chain
+                  </p>
                 </div>
               </div>
               

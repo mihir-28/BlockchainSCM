@@ -318,6 +318,88 @@ export const checkRole = async (account, role) => {
   }
 };
 
+export const revokeRole = async (account, role) => {
+  try {
+    const currentAccount = await getCurrentAccount();
+    if (!currentAccount) throw new Error("No wallet connected");
+    
+    const roleHash = web3Instance.utils.keccak256(role);
+    return await accessControl.methods
+      .revokeRole(account, roleHash)
+      .send({ from: currentAccount });
+  } catch (error) {
+    console.error('Error revoking role:', error);
+    throw error;
+  }
+};
+
+// Get the contract owner (deployer)
+export const getContractOwner = async () => {
+  try {
+    const accessControlContract = await getAccessControlContract();
+    if (!accessControlContract) {
+      throw new Error("Access control contract not initialized");
+    }
+    
+    return await accessControlContract.methods.admin().call();
+  } catch (error) {
+    console.error("Error getting contract owner:", error);
+    throw error;
+  }
+};
+
+// Setup initial admin (only works for contract deployer)
+export const setupInitialAdmin = async () => {
+  try {
+    const account = await getCurrentAccount();
+    if (!account) {
+      throw new Error("No wallet connected");
+    }
+    
+    const accessControlContract = await getAccessControlContract();
+    if (!accessControlContract) {
+      throw new Error("Access control contract not initialized");
+    }
+    
+    // Get contract owner
+    const owner = await accessControlContract.methods.admin().call();
+    
+    // Only the contract owner can do this
+    if (owner.toLowerCase() !== account.toLowerCase()) {
+      throw new Error("Only the contract deployer can set up the first admin");
+    }
+    
+    // Grant ADMIN_ROLE to the current account
+    const ADMIN_ROLE = web3Instance.utils.keccak256("ADMIN_ROLE");
+    await accessControlContract.methods
+      .grantRole(account, ADMIN_ROLE)
+      .send({ from: account });
+    
+    // Store admin status in localStorage for persistence
+    localStorage.setItem('userRoles', JSON.stringify(['ADMIN_ROLE']));
+    
+    return true;
+  } catch (error) {
+    console.error("Error setting up admin:", error);
+    throw error;
+  }
+};
+
+// Add this helper function to check if the role exists in local storage
+// This helps with page refreshes
+export const hasLocalRole = (role) => {
+  try {
+    const storedRoles = localStorage.getItem('userRoles');
+    if (!storedRoles) return false;
+    
+    const roles = JSON.parse(storedRoles);
+    return roles.includes(role);
+  } catch (error) {
+    console.error("Error checking local roles:", error);
+    return false;
+  }
+};
+
 // Helper functions
 export const getSupplyChainContract = () => supplyChainAgreement;
 
@@ -358,6 +440,9 @@ export const getProductTrackingContract = () => {
 
 export const getAccessControlContract = () => accessControl;
 
+export const isValidAddress = (address) => {
+  return web3Instance && web3Instance.utils.isAddress(address);
+};
 
 /**
  * Gets the product contract instance
@@ -439,9 +524,14 @@ export default {
   getAllProducts,
   grantRole,
   checkRole,
+  revokeRole,
+  getContractOwner,
+  setupInitialAdmin,
+  hasLocalRole,
   getSupplyChainContract,
   getProductTrackingContract,
   getAccessControlContract,
   getProductContract,
-  getShipmentContract
+  getShipmentContract,
+  isValidAddress
 };

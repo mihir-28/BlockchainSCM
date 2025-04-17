@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../ui/Navbar';
 import Footer from '../ui/Footer';
 import CustomHover from '../components/Common/CustomHover';
-import BlockchainDebugger from '../components/Debug/BlockchainDebugger';
+// import BlockchainDebugger from '../components/Debug/BlockchainDebugger';
 
 const MainLayout = () => {
     return (
@@ -14,7 +14,7 @@ const MainLayout = () => {
                 <Outlet />
             </main>
             <Footer />
-            <BlockchainDebugger />
+            {/* <BlockchainDebugger /> */}
         </>
     );
 };

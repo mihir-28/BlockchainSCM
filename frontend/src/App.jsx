@@ -12,6 +12,7 @@ import FeaturesPage from "./pages/FeaturesPage";
 import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import RoleSelectionPage from "./pages/RoleSelectionPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import OverviewPage from "./components/Dashboard/OverviewPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -28,24 +29,27 @@ import TermsPage from './pages/TermsPage';
 import PolicyPage from './pages/PolicyPage';
 import SupportPage from './pages/SupportPage';
 import FAQPage from './pages/FAQPage';
+import AdminSetup from "./components/Admin/AdminSetup";
 import NotFound from "./pages/NotFound";
-
-// Blockchain related imports
-import BlockchainTest from "./components/Blockchain/BlockchainTest";
-
-import './index.css';
+import Unauthorized from "./pages/Unauthorized"; // Import the Unauthorized page
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// Import RoleManagement component
+import RoleManagement from "./components/Admin/RoleManagement";
+
+import './index.css';
+
 // Import mock data for dashboard
 import { kpiData, recentTransactions } from "./data/mockData";
+
 
 // Keep your original routes that never use transitions
 const ROUTES_WITHOUT_TRANSITIONS = [
   '/login',
   '/register',
   '/wallet-connection',
-  '/dashboard/*',
+  '/unauthorized',
 ];
 
 // Dashboard route prefix
@@ -62,9 +66,14 @@ const AppContent = () => {
   }, [location]);
 
   // First check: Is this a route that never uses transitions?
-  const isStaticNoTransitionRoute = ROUTES_WITHOUT_TRANSITIONS.some(route =>
-    currentPath === route || currentPath.startsWith(route + '/')
-  );
+  const isStaticNoTransitionRoute = ROUTES_WITHOUT_TRANSITIONS.some(route => {
+    // Special case for dashboard routes
+    if (route === '/dashboard') {
+      return currentPath.startsWith('/dashboard');
+    }
+    // Normal exact or child route matching
+    return currentPath === route || currentPath.startsWith(route + '/');
+  });
 
   // Second check: Is this internal dashboard navigation?
   const currentIsDashboard = currentPath.startsWith(DASHBOARD_PREFIX);
@@ -97,6 +106,12 @@ const AppContent = () => {
             <Route path="support" element={<SupportPage />} />
             <Route path="faq" element={<FAQPage />} />
             <Route path="verify/:productId" element={<ProductVerification />} />
+            <Route path="unauthorized" element={<Unauthorized />} />
+            <Route path="/select-role" element={
+              <ProtectedRoute>
+                <RoleSelectionPage />
+              </ProtectedRoute>
+            } />
           </Route>
 
           {/* Dashboard routes */}
@@ -112,21 +127,40 @@ const AppContent = () => {
             <Route path="products">
               <Route index element={<ProductsPage />} />
               <Route path=":productId" element={<ProductDetails />} />
-              <Route path="new" element={<ProductRegistrationForm />} />
+              {/* Only MANUFACTURER and ADMIN can register new products */}
+              <Route path="new" element={
+                <ProtectedRoute requiredRoles={['MANUFACTURER_ROLE', 'ADMIN_ROLE']}>
+                  <ProductRegistrationForm />
+                </ProtectedRoute>
+              } />
             </Route>
 
             {/* Other dashboard routes */}
             <Route path="transactions" element={<TransactionsPage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
+            
+            {/* Only ADMIN, MANUFACTURER and DISTRIBUTOR can access analytics */}
+            <Route path="analytics" element={
+              <ProtectedRoute requiredRoles={['ADMIN_ROLE', 'MANUFACTURER_ROLE', 'DISTRIBUTOR_ROLE']}>
+                <div className="p-6 bg-panel/30 border border-cta/10 rounded-lg text-center">Analytics page coming soon</div>
+              </ProtectedRoute>
+            } />
+            
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            
+            {/* Admin-only route for role management */}
+            <Route path="roles" element={
+              <ProtectedRoute requiredRoles={['ADMIN_ROLE']}>
+                <RoleManagement />
+              </ProtectedRoute>
+            } />
           </Route>
 
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
 
-          {/* Blockchain test route (for development purposes) */}
-          <Route path="/btest" element={<BlockchainTest />} />
+          {/* Admin setup route */}
+          <Route path="/admin-setup" element={<AdminSetup />} />
         </Routes>
       </PageTransition>
     </>
