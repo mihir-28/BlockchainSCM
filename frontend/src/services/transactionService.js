@@ -1,4 +1,6 @@
 import web3Service from './web3Service';
+import * as productService from './productService';
+import * as userService from './userService'; // Add this import for user data
 
 /**
  * Safely converts BigInt values to strings to prevent mixing errors
@@ -82,6 +84,33 @@ const extractDescription = (type, data) => {
 };
 
 /**
+ * Get user role from database based on wallet address
+ * @param {string} walletAddress - User's wallet address
+ * @returns {Promise<string>} User role from database or default role
+ */
+const getUserRoleFromDb = async (walletAddress) => {
+  try {
+    // Check if the required function exists in userService
+    if (typeof userService.getUserByWalletAddress !== 'function') {
+      console.warn('getUserByWalletAddress function is not defined in userService');
+      return 'Blockchain User';
+    }
+    
+    // Call user service to get user info by wallet address
+    const userInfo = await userService.getUserByWalletAddress(walletAddress);
+    
+    // Return the role if found, or a default role
+    if (userInfo && userInfo.role) {
+      return userInfo.role;
+    }
+    return 'Blockchain User'; // Default fallback role
+  } catch (error) {
+    console.warn('Could not fetch user role from database:', error);
+    return 'Blockchain User'; // Default fallback role
+  }
+};
+
+/**
  * Fetches transaction data from the blockchain
  * @param {Object} filters - Transaction filters
  * @returns {Promise<Array>} Array of transaction objects
@@ -147,12 +176,12 @@ export const fetchTransactions = async (filters = {}) => {
         // Get the product ID from the event
         const productId = safeReturnValues.productId;
         
-        // Fetch the complete product data from the blockchain to get the description
+        // Fetch the complete product data using productService instead of web3Service
         let productData = safeReturnValues;
         try {
-          if (productId && web3Service.getProduct) {
-            // Call the getProduct method from your web3Service to get full product data
-            const fullProductData = await web3Service.getProduct(productId);
+          if (productId) {
+            // Use productService to get combined blockchain and Firebase data
+            const fullProductData = await productService.getProduct(productId);
             if (fullProductData) {
               productData = safeBigIntToString(fullProductData);
             }
@@ -161,20 +190,23 @@ export const fetchTransactions = async (filters = {}) => {
           console.warn("Could not fetch full product data:", error);
         }
         
-        // The actual product description from blockchain data
+        // Get product description
         let description = 'Product registration';
         if (productData.description) {
           description = productData.description;
         } else if (productData.name) {
           description = `Product: ${productData.name}`;
         }
+
+        // Get user role from database instead of hardcoding
+        const userRole = await getUserRoleFromDb(tx.from);
         
         return {
           id: event.transactionHash,
           type: 'product',
           description,
           user: tx.from,
-          userRole: 'Product Manager',
+          userRole, // Use the role from database
           walletAddress: tx.from,
           timestamp: new Date(Number(block.timestamp) * 1000).toISOString(),
           status: 'confirmed',
@@ -209,13 +241,16 @@ export const fetchTransactions = async (filters = {}) => {
             
             // Extract meaningful description from shipment data
             const description = extractDescription('shipment', safeReturnValues);
+
+            // Get user role from database instead of hardcoding
+            const userRole = await getUserRoleFromDb(tx.from);
             
             return {
               id: event.transactionHash,
               type: 'shipment',
               description,
               user: tx.from,
-              userRole: 'Logistics Manager',
+              userRole, // Use the role from database
               walletAddress: tx.from,
               timestamp: new Date(Number(block.timestamp) * 1000).toISOString(),
               status: 'confirmed',
@@ -309,7 +344,8 @@ export const getTransactionDetails = async (txHash) => {
             // If this is a product creation event, try to get full product data
             if (event.event === 'ProductCreated' && data.productId) {
               try {
-                const productData = await web3Service.getProduct(data.productId);
+                // Use productService instead of web3Service
+                const productData = await productService.getProduct(data.productId);
                 if (productData) {
                   // Merge product data while keeping event data
                   data = { 
@@ -319,6 +355,8 @@ export const getTransactionDetails = async (txHash) => {
                   // Use product description for transaction description
                   if (productData.description) {
                     description = productData.description;
+                  } else if (productData.name) {
+                    description = `Product: ${productData.name}`;
                   }
                 }
               } catch (err) {
@@ -349,13 +387,16 @@ export const getTransactionDetails = async (txHash) => {
         input: tx.input
       };
     }
+
+    // Get user role from database instead of hardcoding
+    const userRole = await getUserRoleFromDb(tx.from);
     
     return {
       id: txHash,
       type,
       description,
       user: tx.from,
-      userRole: 'Blockchain User',
+      userRole, // Use the role from database
       walletAddress: tx.from,
       timestamp: new Date(Number(block.timestamp) * 1000).toISOString(),
       status: receipt.status ? 'confirmed' : 'failed',

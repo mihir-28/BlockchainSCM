@@ -194,6 +194,97 @@ const TransactionsPage = () => {
     }
   };
 
+  // Update the getProductName function to match TransactionTable.jsx
+  const getProductName = (tx) => {
+    // Check several possible locations for product data
+    if (tx.type === 'product') {
+      // Direct property access
+      if (tx.productName) return tx.productName;
+      
+      // Check if product name is in data object
+      if (tx.data) {
+        if (tx.data.name) return tx.data.name;
+        if (tx.data.productName) return tx.data.productName;
+        if (tx.data.productId) return tx.data.productId; // Often used as name in blockchain
+        if (tx.data.product && tx.data.product.name) return tx.data.product.name;
+        // Check for nested product details (common pattern in transactionData.jsx)
+        if (tx.data.productDetails && tx.data.productDetails.name) return tx.data.productDetails.name;
+      }
+      
+      // Check if in nested productData
+      if (tx.productData && tx.productData.name) return tx.productData.name;
+    } else if (tx.type === 'certificate') {
+      // For certificate transactions, often reference a product
+      if (tx.data && tx.data.productId) return `Certificate: ${tx.data.productId}`;
+    } else if (tx.type === 'verification') {
+      // Verification transactions also reference products
+      if (tx.data && tx.data.productDetails && tx.data.productDetails.name) 
+        return tx.data.productDetails.name;
+      if (tx.data && tx.data.productId) return `Product: ${tx.data.productId}`;
+    }
+    
+    // Fallback to type with capitalized first letter
+    return tx.type.charAt(0).toUpperCase() + tx.type.slice(1);
+  };
+
+  // Update the getProductDescription function to match TransactionTable.jsx
+  const getProductDescription = (tx) => {
+    // If we already have a description, return it
+    if (tx.description) return tx.description;
+    
+    if (tx.type === 'product') {
+      // Check data object
+      if (tx.data) {
+        if (tx.data.description) return tx.data.description;
+        if (tx.data.notes) return tx.data.notes;
+        if (tx.data.product && tx.data.product.description) return tx.data.product.description;
+        
+        // Build description from available data
+        const details = [];
+        if (tx.data.batchNumber) details.push(`Batch: ${tx.data.batchNumber}`);
+        if (tx.data.quantity) details.push(`Quantity: ${tx.data.quantity}`);
+        if (tx.data.origin && typeof tx.data.origin === 'object') {
+          const origin = [];
+          if (tx.data.origin.farm) origin.push(tx.data.origin.farm);
+          if (tx.data.origin.region) origin.push(tx.data.origin.region);
+          if (tx.data.origin.country) origin.push(tx.data.origin.country);
+          if (origin.length > 0) details.push(`Origin: ${origin.join(', ')}`);
+        } else if (tx.data.origin) {
+          details.push(`Origin: ${tx.data.origin}`);
+        }
+        
+        if (details.length > 0) return details.join(' | ');
+      }
+      
+      // Check productData
+      if (tx.productData && tx.productData.description) return tx.productData.description;
+    } else if (tx.type === 'certificate' || tx.type === 'verification') {
+      // For certificate/verification transactions
+      if (tx.data) {
+        if (tx.data.notes) return tx.data.notes;
+        if (tx.data.results) {
+          const results = [];
+          for (const [key, value] of Object.entries(tx.data.results)) {
+            results.push(`${key}: ${value}`);
+          }
+          if (results.length > 0) return results.join(' | ');
+        }
+      }
+    } else if (tx.type === 'shipment') {
+      // For shipment transactions
+      if (tx.data) {
+        const shipmentInfo = [];
+        if (tx.data.origin) shipmentInfo.push(`From: ${tx.data.origin}`);
+        if (tx.data.destination) shipmentInfo.push(`To: ${tx.data.destination}`);
+        if (tx.data.status) shipmentInfo.push(`Status: ${tx.data.status}`);
+        if (shipmentInfo.length > 0) return shipmentInfo.join(' | ');
+      }
+    }
+    
+    // Fallback
+    return tx.description || `${tx.type} transaction`;
+  };
+
   // Handle transaction click
   const handleTransactionClick = async (tx) => {
     // Set selected transaction immediately with current data
@@ -554,23 +645,19 @@ const TransactionsPage = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-panel/50 flex items-center justify-center">
+                          <div className="h-10 w-10 rounded-full bg-panel/50 flex items-center justify-center mr-3">
                             {getTransactionIcon(tx.type)}
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-text">
-                              #{tx.id.substring(0, 8)}...
+                          <div>
+                            <div className="font-medium text-text capitalize">
+                              {getProductName(tx)}
                             </div>
-                            <div className="text-xs text-text/50 capitalize">
-                              {tx.type === 'product' && tx.data && tx.data.name
-                                ? tx.data.name
-                                : tx.type}
-                            </div>
+                            <div className="text-xs text-text/50">#{tx.id.substring(0, 8)}...</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-text/80">{tx.description}</div>
+                        <p className="text-sm text-text/80 mb-4 line-clamp-2">{getProductDescription(tx)}</p>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-text/80 flex items-center">
@@ -624,16 +711,14 @@ const TransactionsPage = () => {
                     </div>
                     <div>
                       <div className="font-medium text-text capitalize">
-                        {tx.type === 'product' && tx.data && tx.data.name
-                          ? tx.data.name
-                          : tx.type}
+                        {getProductName(tx)}
                       </div>
                       <div className="text-xs text-text/50">#{tx.id.substring(0, 8)}...</div>
                     </div>
                   </div>
                   <div>{renderStatusBadge(tx.status)}</div>
                 </div>
-                <p className="text-sm text-text/80 mb-4 line-clamp-2">{tx.description}</p>
+                <p className="text-sm text-text/80 mb-4 line-clamp-2">{getProductDescription(tx)}</p>
                 <div className="border-t border-cta/10 pt-4">
                   <div className="flex justify-between text-xs text-text/60">
                     <div className="flex items-center">
@@ -693,16 +778,16 @@ const TransactionsPage = () => {
                       <div className="text-text capitalize">{selectedTransaction.type}</div>
                     </div>
 
-                    {selectedTransaction.type === 'product' && selectedTransaction.data && selectedTransaction.data.name && (
+                    {selectedTransaction.type === 'product' && (
                       <div>
                         <div className="text-xs text-text/60 mb-1">Product Name</div>
-                        <div className="text-text font-medium">{selectedTransaction.data.name}</div>
+                        <div className="text-text font-medium">{getProductName(selectedTransaction)}</div>
                       </div>
                     )}
 
                     <div>
                       <div className="text-xs text-text/60 mb-1">Description</div>
-                      <div className="text-text">{selectedTransaction.description}</div>
+                      <div className="text-text">{getProductDescription(selectedTransaction)}</div>
                     </div>
 
                     <div>
