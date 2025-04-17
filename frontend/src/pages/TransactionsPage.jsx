@@ -200,7 +200,7 @@ const TransactionsPage = () => {
     if (tx.type === 'product') {
       // Direct property access
       if (tx.productName) return tx.productName;
-      
+
       // Check if product name is in data object
       if (tx.data) {
         if (tx.data.name) return tx.data.name;
@@ -210,7 +210,7 @@ const TransactionsPage = () => {
         // Check for nested product details (common pattern in transactionData.jsx)
         if (tx.data.productDetails && tx.data.productDetails.name) return tx.data.productDetails.name;
       }
-      
+
       // Check if in nested productData
       if (tx.productData && tx.productData.name) return tx.productData.name;
     } else if (tx.type === 'certificate') {
@@ -218,11 +218,11 @@ const TransactionsPage = () => {
       if (tx.data && tx.data.productId) return `Certificate: ${tx.data.productId}`;
     } else if (tx.type === 'verification') {
       // Verification transactions also reference products
-      if (tx.data && tx.data.productDetails && tx.data.productDetails.name) 
+      if (tx.data && tx.data.productDetails && tx.data.productDetails.name)
         return tx.data.productDetails.name;
       if (tx.data && tx.data.productId) return `Product: ${tx.data.productId}`;
     }
-    
+
     // Fallback to type with capitalized first letter
     return tx.type.charAt(0).toUpperCase() + tx.type.slice(1);
   };
@@ -231,14 +231,14 @@ const TransactionsPage = () => {
   const getProductDescription = (tx) => {
     // If we already have a description, return it
     if (tx.description) return tx.description;
-    
+
     if (tx.type === 'product') {
       // Check data object
       if (tx.data) {
         if (tx.data.description) return tx.data.description;
         if (tx.data.notes) return tx.data.notes;
         if (tx.data.product && tx.data.product.description) return tx.data.product.description;
-        
+
         // Build description from available data
         const details = [];
         if (tx.data.batchNumber) details.push(`Batch: ${tx.data.batchNumber}`);
@@ -252,10 +252,10 @@ const TransactionsPage = () => {
         } else if (tx.data.origin) {
           details.push(`Origin: ${tx.data.origin}`);
         }
-        
+
         if (details.length > 0) return details.join(' | ');
       }
-      
+
       // Check productData
       if (tx.productData && tx.productData.description) return tx.productData.description;
     } else if (tx.type === 'certificate' || tx.type === 'verification') {
@@ -280,7 +280,7 @@ const TransactionsPage = () => {
         if (shipmentInfo.length > 0) return shipmentInfo.join(' | ');
       }
     }
-    
+
     // Fallback
     return tx.description || `${tx.type} transaction`;
   };
@@ -657,7 +657,7 @@ const TransactionsPage = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-text/80 mb-4 line-clamp-2">{getProductDescription(tx)}</p>
+                        <p className="text-sm text-text/80 line-clamp-2">{getProductDescription(tx)}</p>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-text/80 flex items-center">
