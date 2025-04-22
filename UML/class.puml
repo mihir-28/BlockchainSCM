@@ -1,0 +1,45 @@
+@startuml class
+
+class User {
+  - userId : String
+  - email : String
+  - walletAddress : String
+  - role : String
+  - createdAt : DateTime
+  + authenticate()
+  + getDashboardData()
+}
+
+class Product {
+  - productId : String
+  - name : String
+  - category : String
+  - batchNumber : String
+  - qrCodeURL : String
+  - manufactureDate : Date
+  - currentOwner : String
+  - status : String
+  + register()
+  + transferOwnership()
+  + getHistory()
+}
+
+class OwnershipLog {
+  - logId : String
+  - productId : String
+  - fromAddress : String
+  - toAddress : String
+  - timestamp : DateTime
+  + recordTransfer()
+}
+
+class Verification {
+  + scanQRCode(qr : String)
+  + displayProductDetails()
+}
+
+User "1" -- "*" Product : owns >
+Product "1" -- "*" OwnershipLog : logs >
+Verification ..> Product : accesses
+
+@enduml

@@ -1,0 +1,45 @@
+@startuml usecase
+left to right direction
+
+actor Manufacturer
+actor Distributor
+actor Retailer
+actor Auditor
+actor Consumer
+
+rectangle "Blockchain Supply Chain System" {
+  usecase "Login / Authenticate" as UC1
+  usecase "Connect Wallet (MetaMask)" as UC2
+  usecase "Register New Product" as UC3
+  usecase "Generate QR Code" as UC4
+  usecase "Transfer Ownership" as UC5
+  usecase "View Dashboard" as UC6
+  usecase "Scan QR for Verification" as UC7
+  usecase "View Product History" as UC8
+}
+
+Manufacturer --> UC1
+Manufacturer --> UC2
+Manufacturer --> UC3
+Manufacturer --> UC4
+Manufacturer --> UC5
+Manufacturer --> UC6
+
+Distributor --> UC1
+Distributor --> UC2
+Distributor --> UC5
+Distributor --> UC6
+
+Retailer --> UC1
+Retailer --> UC2
+Retailer --> UC5
+Retailer --> UC6
+
+Auditor --> UC1
+Auditor --> UC6
+Auditor --> UC8
+
+Consumer --> UC7
+Consumer --> UC8
+
+@enduml

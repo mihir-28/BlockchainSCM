@@ -1,0 +1,32 @@
+@startuml deployment
+
+node "Client Device" {
+  component "ReactJS Frontend" {
+    [MetaMask Wallet]
+    [QR Scanner Module]
+  }
+}
+
+node "Firebase Services" {
+  database "Firestore Database"
+  component "Authentication Service"
+  component "Cloud Functions (Optional)"
+}
+
+node "Blockchain Network" {
+  component "Smart Contract (Solidity)"
+  [Ganache Local Testnet]
+}
+
+node "Hosting Platform" {
+  [Netlify]
+}
+
+"ReactJS Frontend" --> "Smart Contract (Solidity)" : Web3.js / MetaMask
+"ReactJS Frontend" --> "Authentication Service" : Firebase Auth SDK
+"ReactJS Frontend" --> "Firestore Database" : Product Metadata
+"Netlify" --> "ReactJS Frontend"
+"Smart Contract (Solidity)" --> "Ganache Local Testnet"
+"Cloud Functions (Optional)" --> "Firestore Database"
+
+@enduml

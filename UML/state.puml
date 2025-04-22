@@ -1,0 +1,19 @@
+@startuml state
+
+[*] --> Unregistered : Product created (off-chain)
+
+Unregistered --> Registered : Manufacturer registers on blockchain
+
+Registered --> InTransitToDistributor : Ownership transferred to distributor
+InTransitToDistributor --> WithDistributor : Distributor confirms receipt
+
+WithDistributor --> InTransitToRetailer : Ownership transferred to retailer
+InTransitToRetailer --> WithRetailer : Retailer confirms receipt
+
+WithRetailer --> AvailableForSale : Product is listed for sale
+
+AvailableForSale --> Verified : Consumer scans QR for authenticity
+
+Verified --> [*]
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml sequence
+
+actor Manufacturer
+participant "React Frontend" as Frontend
+participant "MetaMask Wallet" as MetaMask
+participant "Smart Contract" as Contract
+participant "Firebase (Firestore)" as Firestore
+
+Manufacturer -> Frontend : Login via Firebase
+Frontend -> MetaMask : Request wallet access
+MetaMask --> Frontend : Wallet address connected
+
+Manufacturer -> Frontend : Enter product details
+Frontend -> Contract : registerProduct(name, batchId, role)
+Contract --> Frontend : emit ProductRegistered(productId)
+Frontend -> Firestore : Save metadata (QR code, product info)
+
+== Later: Ownership Transfer ==
+
+Manufacturer -> Frontend : Initiate transfer
+Frontend -> MetaMask : Sign transaction
+MetaMask -> Contract : transferOwnership(productId, toAddress)
+Contract --> Frontend : emit OwnershipTransferred
+Frontend -> Firestore : Update current owner
+
+@enduml

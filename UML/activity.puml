@@ -1,0 +1,33 @@
+@startuml activity
+
+start
+
+:User opens application;
+:Login via Firebase;
+:Connect MetaMask wallet;
+
+if (Role = Manufacturer?) then (yes)
+  :Access product registration form;
+  :Enter product details;
+  :Register product on blockchain;
+  :Generate QR Code;
+  :Save metadata to Firebase;
+endif
+
+if (Role = Distributor or Retailer?) then (yes)
+  :View incoming products;
+  :Initiate transfer;
+  :Sign transaction via MetaMask;
+  :Blockchain updates ownership;
+  :Firebase logs metadata;
+endif
+
+if (Role = Consumer?) then (yes)
+  :Scan product QR code;
+  :Fetch product info;
+  :Display ownership history;
+endif
+
+stop
+
+@enduml
