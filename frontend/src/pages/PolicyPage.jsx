@@ -231,7 +231,7 @@ const PolicyPage = () => {
                 <p className="mb-1">NexChain - Data Protection</p>
                 <p className="mb-1">Mumbai, Maharashtra, India - 421202</p>
                 <p className="mb-1">Email: <a href="mailto:mihirnagda28@gmail.com" className="text-cta hover:text-cta/80 transition-colors">mihirnagda28@gmail.com</a></p>
-                <p>Phone: <a href="tel:+919137461112" className="text-cta hover:text-cta/80 transition-colors">+91 91374 61112</a></p>
+                {/* <p>Phone: <a href="tel:" className="text-cta hover:text-cta/80 transition-colors"></a></p> */}
               </div>
             </motion.div>
           </motion.div>

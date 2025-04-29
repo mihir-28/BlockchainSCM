@@ -128,7 +128,7 @@ const ContactPage = () => {
   const companyDetails = {
     name: "Mihir Nagda",
     address: "Mumbai, Maharashtra, India - 421202",
-    phone: "+91 91374 61112",
+    // phone: "",
     email: "mihirnagda28@gmail.com"
   };
 
@@ -293,7 +293,7 @@ const ContactPage = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center">
+                {/* <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-cta/10 text-cta">
                     <FaPhone />
                   </div>
@@ -301,7 +301,7 @@ const ContactPage = () => {
                     <h3 className="text-cta font-medium">Phone</h3>
                     <p className="text-text/70 mt-1">{companyDetails.phone}</p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-cta/10 text-cta">
