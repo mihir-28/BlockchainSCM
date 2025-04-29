@@ -136,7 +136,7 @@ const Footer = () => {
           <div className="text-center lg:text-left">
             <h4 className="font-bold text-text mb-4">Get In Touch</h4>
             <p className="text-sm mb-2">Email: mihirnagda28@gmail.com</p>
-            <p className="text-sm mb-4">Phone: +91 91374 61112</p>
+            {/* <p className="text-sm mb-4">Phone: </p> */}
 
             {/* Social Media Icons using the constant */}
             <div className="flex justify-center lg:justify-start space-x-4 mt-4">
